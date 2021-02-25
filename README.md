@@ -1,4 +1,6 @@
 # MONAI-FL
+![Project MONAI](https://github.com/habibcomsats/MONAI-FL/images/monai-logo.png)
+
 ## Towards new ecosystem of open-source, community-driven FL platform for Healthcare Applications
 
 
