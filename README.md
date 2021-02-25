@@ -3,32 +3,31 @@ Towards new ecosystem of open-source, community-driven FL platform for Healthcar
 Objective:
 
 Design of a new platform for Federated Learning in Healthcare Environments
-Core Modules
+*Core Modules*
 -	API 
->	Interfacing all modules with programmable application layer
+* Interfacing all modules with programmable application layer
 -	Communication Model
->	Client server
->	Peer-to-Peer
+* Client server
+* Peer-to-Peer
 -	Execution/Runtime Environment
->	Standalone
->	LAN
->	WAN
->	Cloud
+* Standalone
+* LAN
+* WAN
+* Cloud
 -	Models
->	Various flavors of FL
+* Various flavors of FL
 -	Data
->	FL Datasets (for experimentation)
-o	Data connectors interfacing real systems.
+* FL Datasets (for experimentation)
 >	Platform Features
->	Federated Aggregation
->	Enclave execution
->	Robustness
->	Fairness
->	Reputation Mechanism etc.
+* Federated Aggregation
+* Enclave execution
+* Robustness
+* Fairness
+* Reputation Mechanism etc.
 -	Privacy
->	Differential Privacy
->	Secure Multiparty Computation
->	Homomorphic Encryption
+ * Differential Privacy
+ * Secure Multiparty Computation
+ * Homomorphic Encryption
 -	Security
->	Secure ML
->	System Security
+* Secure ML
+* System Security
