@@ -2,6 +2,7 @@
 ![ProjectMONAI-FL](/images/monai-logo.png)
 
 ## Towards new ecosystem of open-source, community-driven FL platform for Healthcare Applications
+### We aim to augment the MONAI platform with federated learning features. 
 
 
 Objective:
