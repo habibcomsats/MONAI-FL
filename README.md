@@ -7,7 +7,8 @@
 
 Objective:
 Design of a new platform for Federated Learning in Healthcare Environments
-*Core Modules*
+
+**Core Modules**
 - API 
   - Interfacing all modules with programmable application layer
 - Communication Model
