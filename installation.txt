@@ -1,1 +1,28 @@
-This file will contain all the installation related information
+We are working on pre-release of version 0.1.
+
+At this stage you just need to 
+
+- create a conda environment
+
+      https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html
+
+- install visual studio code (or any other python IDE of your choice)
+
+      https://code.visualstudio.com/download
+
+- install MONAI
+
+      https://pypi.org/project/monai/
+
+- Fork the GitHub via following link
+
+      https://github.com/habibcomsats/flresearch.git
+
+- Run example notebooks on MONAI platform
+
+      https://github.com/Project-MONAI/tutorials
+
+- and, Congratulations! You are READY to fly.
+
+
+
