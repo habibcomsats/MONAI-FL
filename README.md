@@ -9,30 +9,30 @@ Objective:
 Design of a new platform for Federated Learning in Healthcare Environments
 
 **Core Modules**
-- API 
+- **API** 
   - Interfacing all modules with programmable application layer
-- Communication Model
+- **Communication Model**
   - Client server
   - Peer-to-Peer
-- Execution/Runtime Environment
+- **Execution/Runtime Environment**
   - Standalone
   - LAN
   - WAN
   - Cloud
-- Models
+- **Models**
   - Various flavors of FL
-- Data
+- **Data**
   - FL Datasets (for experimentation)
-- Platform Features
+- **Platform Features**
   - Federated Aggregation
   - Enclave execution
   - Robustness
   - Fairness
   - Reputation Mechanism etc.
-- Privacy
+- **Privacy**
   - Differential Privacy
   - Secure Multiparty Computation
   - Homomorphic Encryption
-- Security
+- **Security**
   - Secure ML
   - System Security
