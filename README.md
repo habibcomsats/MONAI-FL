@@ -1,36 +1,38 @@
 # MONAI-FL
-![ProjectMONAI-FL](https://github.com/habibcomsats/MONAI-FL/images/monai-logo.png)
+![ProjectMONAI-FL](/images/monai-logo.png)
 
 ## Towards new ecosystem of open-source, community-driven FL platform for Healthcare Applications
+### We aim to augment the MONAI platform with federated learning features. 
 
 
 Objective:
 Design of a new platform for Federated Learning in Healthcare Environments
-*Core Modules*
-- API 
+
+**Core Modules**
+- **API** 
   - Interfacing all modules with programmable application layer
-- Communication Model
+- **Communication Model**
   - Client server
   - Peer-to-Peer
-- Execution/Runtime Environment
+- **Execution/Runtime Environment**
   - Standalone
   - LAN
   - WAN
   - Cloud
-- Models
+- **Models**
   - Various flavors of FL
-- Data
+- **Data**
   - FL Datasets (for experimentation)
-- Platform Features
+- **Platform Features**
   - Federated Aggregation
   - Enclave execution
   - Robustness
   - Fairness
   - Reputation Mechanism etc.
-- Privacy
+- **Privacy**
   - Differential Privacy
   - Secure Multiparty Computation
   - Homomorphic Encryption
-- Security
+- **Security**
   - Secure ML
   - System Security
