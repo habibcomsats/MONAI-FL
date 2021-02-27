@@ -1,14 +1,9 @@
-This module will contains the privacy algorithms.
+# MONAI-FL
+![ProjectMONAI-FL](/images/monai-logo.png)
 
-Primarily, we are looking for privacy algorithms for 
+## Currently, the platform is open and run-time-agnostic.
 
-- differential privacy
-- homomorphic encryption (partial or full)
-- zero-knowledge proofs
-- secure multiparty computation
-- private set intersections, etc. 
-
-Our ultimate goal is to provide a large codebase of pre-designed privacy-preservation schemes to expedite the research on healthcare applications
+However, we recommend it to extend and customize it for various runtimes in cloud, clusters, and in-network computing enviroments.
 
 We welcome every idea to improve the platform.
 

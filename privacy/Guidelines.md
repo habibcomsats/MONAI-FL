@@ -1,8 +1,17 @@
-This module will contains the privacy algorithms.
+# MONAI-FL
+![ProjectMONAI-FL](/images/monai-logo.png)
 
-Primarily, we are looking security algorithms to secure the data, model, and inferences.  
+## This module will contains the privacy algorithms.
 
-Our ultimate goal is to provide a large codebase of pre-designed security models to expedite the research on secure healthcare applications
+Primarily, we are looking for privacy algorithms for 
+
+- differential privacy
+- homomorphic encryption (partial or full)
+- zero-knowledge proofs
+- secure multiparty computation
+- private set intersections, etc. 
+
+Our ultimate goal is to provide a large codebase of pre-designed privacy-preservation schemes to expedite the research on healthcare applications
 
 We welcome every idea to improve the platform.
 

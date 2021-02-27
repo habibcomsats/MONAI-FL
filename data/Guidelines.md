@@ -1,4 +1,7 @@
-This folder will contains all related datasets for experimentation.  
+# MONAI-FL
+![ProjectMONAI-FL](/images/monai-logo.png)
+
+## This folder will contains all related datasets for experimentation.  
 
 We are looking to add more datasets. 
 

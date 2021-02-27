@@ -1,4 +1,7 @@
-This folder will contains the model architectures.
+# MONAI-FL
+![ProjectMONAI-FL](/images/monai-logo.png)
+
+## This folder will contains the model architectures.
 
 Our ultimate goal is to provide a large codebase of preconfigured models to expedite the research on healthcare applications
 

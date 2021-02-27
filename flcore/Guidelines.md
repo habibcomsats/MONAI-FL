@@ -1,4 +1,7 @@
-This folder will contains the core components of FL systems which includes but not limited to 
+# MONAI-FL
+![ProjectMONAI-FL](/images/monai-logo.png)
+
+## This folder will contains the core components of FL systems which includes but not limited to 
 
 - various FL protocols considering the network topologies, application requirements and, system configurations.
 - Fairness Mechanisms

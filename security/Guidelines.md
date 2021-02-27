@@ -1,6 +1,11 @@
-Currently, the platform is open and run-time-agnostic.
+# MONAI-FL
+![ProjectMONAI-FL](/images/monai-logo.png)
 
-However, we recommend it to extend and customize it for various runtimes in cloud, clusters, and in-network computing enviroments.
+## This module will contains the security algorithms.
+
+Primarily, we are looking security algorithms to secure the data, model, and inferences.  
+
+Our ultimate goal is to provide a large codebase of pre-designed security models to expedite the research on secure healthcare applications
 
 We welcome every idea to improve the platform.
 
