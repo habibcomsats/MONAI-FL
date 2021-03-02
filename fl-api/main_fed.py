@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Python version: 3.6
 import sys
-sys.path.insert(1, '/Users/mhreh/Documents/GitHub/flresearch')
+sys.path.insert(1, '/home/habib/PycharmProjects/MONAI-FL/')
  
 import matplotlib
 matplotlib.use('Agg')
