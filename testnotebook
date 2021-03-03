@@ -28,7 +28,7 @@
  "cells": [
   {
    "cell_type": "code",
-   "execution_count": 43,
+   "execution_count": 50,
    "metadata": {},
    "outputs": [],
    "source": [
@@ -40,7 +40,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 44,
+   "execution_count": 51,
    "metadata": {},
    "outputs": [],
    "source": [
@@ -55,7 +55,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 45,
+   "execution_count": 52,
    "metadata": {},
    "outputs": [],
    "source": [
@@ -69,7 +69,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 46,
+   "execution_count": 53,
    "metadata": {},
    "outputs": [],
    "source": [
@@ -77,6 +77,11 @@
     "# startTraining function will read the configuration file about clients (IP, port), model architecture, hyper-parameters, and which devices needs to perform the training and which will perform the validation on current model iteration. The function also detrmines the noise level for secure aggregation\n",
     "def startTraining():\n",
     "    Read_List_of_Devices\n",
+    "    clientIPs = [\"192.168.1.0\",\"192.168.1.1\",\"192.168.1.2\",\"192.168.1.3\",\"192.168.1.4\"]\n",
+    "    clientPorts = [5000, 5001, 5002, 5003, 5004]\n",
+    "    ClientAddresses = list(zip(clientIPs,clientPorts))\n",
+    "    print(ClientAddresses)\n",
+    "\n",
     "    Read_TrainingConfigurations\n",
     "    beginTraining()\n",
     "    return print(\"Executing FL Protocol...\")"
@@ -84,7 +89,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 47,
+   "execution_count": 57,
    "metadata": {},
    "outputs": [],
    "source": [
@@ -98,7 +103,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 48,
+   "execution_count": 55,
    "metadata": {},
    "outputs": [
     {
@@ -130,15 +135,15 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 49,
+   "execution_count": 56,
    "metadata": {},
    "outputs": [
     {
      "output_type": "error",
      "ename": "SyntaxError",
-     "evalue": "invalid syntax (<ipython-input-49-7df7ab33d070>, line 6)",
+     "evalue": "invalid syntax (<ipython-input-56-7df7ab33d070>, line 6)",
      "traceback": [
-      "\u001b[0;36m  File \u001b[0;32m\"<ipython-input-49-7df7ab33d070>\"\u001b[0;36m, line \u001b[0;32m6\u001b[0m\n\u001b[0;31m    rerurn 100\u001b[0m\n\u001b[0m             ^\u001b[0m\n\u001b[0;31mSyntaxError\u001b[0m\u001b[0;31m:\u001b[0m invalid syntax\n"
+      "\u001b[0;36m  File \u001b[0;32m\"<ipython-input-56-7df7ab33d070>\"\u001b[0;36m, line \u001b[0;32m6\u001b[0m\n\u001b[0;31m    rerurn 100\u001b[0m\n\u001b[0m             ^\u001b[0m\n\u001b[0;31mSyntaxError\u001b[0m\u001b[0;31m:\u001b[0m invalid syntax\n"
      ]
     }
    ],
