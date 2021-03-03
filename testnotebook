@@ -1,0 +1,180 @@
+{
+ "metadata": {
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.9-final"
+  },
+  "orig_nbformat": 2,
+  "kernelspec": {
+   "name": "python3",
+   "display_name": "Python 3.7.9 64-bit ('base': conda)",
+   "metadata": {
+    "interpreter": {
+     "hash": "0650f8cb21ce6ae8aa3b77860dd7c7a76a5cbd9328b4f3295547fd7ed4be79d7"
+    }
+   }
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2,
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 43,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Step 1 on the Server\n",
+    "# Server initiates the FL protocol\n",
+    "def startProtocol():\n",
+    "    return print(\"Executing FL Protocol...\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 44,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Step 2 on the Server\n",
+    "# Server selects the devices and determine the number of workers from configuration file\n",
+    "def selectDevices(numOfDevices):\n",
+    "    collectDevicesList = CollectFromConfigurationFile\n",
+    "    startListeningOnServer\n",
+    "    collectAvailableDevices = checkDeviceStatus # by sending and receiving acknowledgement messages to the devices\n",
+    "    return collectAvailableDevices"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 45,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Step 3 on the Server\n",
+    "# Server will push the updated model to the selected devices → startTraining(n)\n",
+    "def pushModel(selectedDevices):\n",
+    "    establish_Connection_With_Selected_Devices_in_the_List ##input selectedDevices\n",
+    "    send_Model_to_selectedDevices # input selected devices\n",
+    "    return print(\"Model Bootstrapped...\")\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 46,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Step 4 on the Server\n",
+    "# startTraining function will read the configuration file about clients (IP, port), model architecture, hyper-parameters, and which devices needs to perform the training and which will perform the validation on current model iteration. The function also detrmines the noise level for secure aggregation\n",
+    "def startTraining():\n",
+    "    Read_List_of_Devices\n",
+    "    Read_TrainingConfigurations\n",
+    "    beginTraining()\n",
+    "    return print(\"Executing FL Protocol...\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 47,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Step 5 on the Workers\n",
+    "# Workers execute the training pipeline and save the weights in the local storage\n",
+    "def LocalTraining():\n",
+    "    print(\"Initiate and Execute complete local training pipeline\")\n",
+    "    weights = 0.0\n",
+    "    return weights"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 48,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "Transferring weights to the server:  127.0.0.1:8800\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Step 6 on the Wokers\n",
+    "# Workers add the noise and return the parameters to the server\n",
+    "localWeights = LocalTraining\n",
+    "noise = 0\n",
+    "def addNoise(lw):\n",
+    "    noisyWeights = lw + noise\n",
+    "    return noisyWeights    \n",
+    "\n",
+    "def transferWeights(server):\n",
+    "    return print(\"Transferring weights to the server: \", server)  \n",
+    "\n",
+    "\n",
+    "localWeights=0.0   \n",
+    "server = \"127.0.0.1:8800\"\n",
+    "secureWeights = addNoise(localWeights)\n",
+    "transferWeights(server) "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 49,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "error",
+     "ename": "SyntaxError",
+     "evalue": "invalid syntax (<ipython-input-49-7df7ab33d070>, line 6)",
+     "traceback": [
+      "\u001b[0;36m  File \u001b[0;32m\"<ipython-input-49-7df7ab33d070>\"\u001b[0;36m, line \u001b[0;32m6\u001b[0m\n\u001b[0;31m    rerurn 100\u001b[0m\n\u001b[0m             ^\u001b[0m\n\u001b[0;31mSyntaxError\u001b[0m\u001b[0;31m:\u001b[0m invalid syntax\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Step 7 on the Server\n",
+    "# Server collects the noisy parameters, perform aggregations, cancels out the noise, retrain the model and stores it for next round of iterations. \n",
+    "\n",
+    "def collectParameters():\n",
+    "    print(\"Collecting paramters...\")\n",
+    "    rerurn 100\n",
+    "\n",
+    "def secureAggregation(secParameters)\n",
+    "    print(\"Aggregating parameters securely...\")\n",
+    "    return 200\n",
+    "\n",
+    "def cancelNoise(secAggregatedParameters):\n",
+    "    print(\"Cancelling Noise from aggregated parameters...\")\n",
+    "    return 15\n",
+    "\n",
+    "def reTrain(modelParameters):\n",
+    "    print(\"retraing model\")\n",
+    "    print(\"saving model for next iteration\")\n",
+    "\n",
+    "secureParamList = collectParameters() # params from all the devices\n",
+    "secureAggregatedParameters = secureAggregation(secureParamList)\n",
+    "noiseFreeParameters = cancelNoise(secureAggregatedParameters)\n",
+    "newModel = reTrain(noiseFreeParameters)\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ]
+}
