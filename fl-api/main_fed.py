@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 # Python version: 3.6
 import sys
-sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
+#path for linux distribution
+# sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
  
+#path for windows installation
+sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL')
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
