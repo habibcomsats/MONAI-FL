@@ -1,13 +1,83 @@
 import socket
 import threading
 
+from configparser import ConfigParser
+
+def setNetworkConfigurations():
+    
+    serverip = '127.0.0.1'
+    serverport = '8000'
+
+    clientip1 = '127.0.0.1'
+    clientport1 = '8001'
+
+    clientip2 = '127.0.0.1'
+    clientport2 = '8001'
+
+    clientip3 = '127.0.0.1'
+    clientport3 = '8001'
+
+    parser = ConfigParser()
+
+    parser.add_section('localserver')
+    parser.set('localserver', 'ip', serverip)
+    parser.set('localserver', 'port', serverport)
+    
+    parser.add_section('localclient')
+    parser.set('localclient', 'ip1', clientip1)
+    parser.set('localclient', 'port1', clientport1)
+
+    parser.set('localclient', 'ip2', clientip2)
+    parser.set('localclient', 'port2', clientport2)
+
+    parser.set('localclient', 'ip3', clientip3)
+    parser.set('localclient', 'port3', clientport3)
+
+    fp=open('netconfig.ini','w')
+    parser.write(fp)
+    fp.close()
+
+setNetworkConfigurations()
+
+def getNetworkConfigurations():
+    fl_participants = list()
+
+    parser = ConfigParser()
+    parser.read('netconfig.ini')
+
+    serverip = parser.get('localserver','ip')
+    serverport = parser.get('localserver','port')
+    server = serverip, serverport
+    fl_participants.append(server)
+
+    clientip1 = parser.get('localclient', 'ip1')
+    clientport1 = parser.get('localclient', 'port1')
+    client1 = clientip1, clientport1
+    fl_participants.append(client1)
+
+    clientip2 = parser.get('localclient', 'ip2')
+    clientport2 = parser.get('localclient', 'port2')
+    client2 = clientip2, clientport2
+    fl_participants.append(client2)
+
+    clientip3 = parser.get('localclient', 'ip3')
+    clientport3 = parser.get('localclient', 'port3')
+    client3 = clientip3, clientport3
+    fl_participants.append(client3)
+
+    return fl_participants
+
+
 HEADER = 64
-PORT = 8000
+PORT = 8500
 
-SERVER =   "127.0.0.1" #socket.gethostbyname(socket.gethostname())
+fl_participants = getNetworkConfigurations()
+
+SERVER =  fl_participants[0][0] # "127.0.1.1" #socket.gethostbyname(socket.gethostname())
 print("Server's IP address is: "+ SERVER)
-
-ADDR  =  (SERVER, PORT)
+PORT = fl_participants[0][1]
+print(PORT)
+ADDR  = (SERVER, int(PORT)) 
 
 FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "Disconnect!"
@@ -15,6 +85,8 @@ DISCONNECT_MESSAGE = "Disconnect!"
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 print("Server is binded")
+
+
 
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
@@ -33,12 +105,15 @@ def handle_client(conn, addr):
     
     conn.close()
 
+for ip, port in enumerate(fl_participants):
+    print (ip, port)
 
 def start():
     server.listen()
     print(f"[LISTENING] server is listening on {SERVER}")
     while True:
         conn, addr = server.accept()
+
         thread = threading.Thread(target=handle_client, args=(conn, addr))
         thread.start()
         print(f"[ACTIVE CONNECTIONS] {threading.activeCount()-1}")
