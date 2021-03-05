@@ -3,20 +3,80 @@ import sys
 # sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
 #path for windows installation
 sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL')
+
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+import torch
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+import torch.optim as optim
+from torchvision import datasets, transforms
+
+from utils.options import args_parser
+
+from models.Nets import MLP, CNNMnist, CNNCifar
 #from communication.network import getNetworkConfigurations
 from communication.server import start 
 # Step 1: Server initiates the FL protocol
-def flProtocol():
-  print("Bootstrap model") # study how to save the model in local disk and how to send it to other devices
-  print("send model configurations")
-  print("Received model weights from devices")
-  print("Perform secure Aggregation")
-  print("Update Local model")
-  print("Save model for next-round")
 
+
+
+
+
+
+
+
+
+def flProtocol():
+  modelBoostrap()
+  setModelConfigurations()
+  getModelUpdate()
+  secureAggregation()
+  setLocalModelUpdate()
+  checkPoint(state, filename)
   return print("Executing FL Protocol...")
 
 flProtocol()
+
+def modelBoostrap():
+  #colecting model from server storage and sending it to devices in the list.
+  print("Bootstrap model")
+def setModelConfigurations():
+  #colecting model configurations from server storage and sending it to devices in the list.
+  print("send model configurations")
+  
+def getModelUpdate():
+  # receiving model gradients from all FL participants
+  print("Received model weights from devices")
+  
+def secureAggregation():
+  # calling and using the federated aggregation algorithms
+  print("Perform secure Aggregation")
+  
+def setLocalModelUpdate():
+  # retrain the model on aggregated parameters
+  print("Update Local model")
+  
+def checkPoint(state, filename="modelname.pth.tar"):
+  print("saving checkpoint...") # save next model checkpoint in server
+  torch.save(state, filename)
+
+FILE = "model.pth"
+torch.save(model.state_dict(), FILE)
+
+model = Model(*args, **kwargs)
+model.load_state_dict(torch.load(FILE))
+model.eval()
+
+checkPoint = {
+  'state_dict': model.state_dict(), # saves model weights and biases
+  'optimizer': optimizer.state_dict() # save optimizer hyperparameters
+  }
+save_checkpoint(checkPoint)
+
 
  #   dev = getNetworkConfigurations()
  #   print(dev)
