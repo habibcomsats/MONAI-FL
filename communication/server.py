@@ -22,6 +22,15 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 print("Server is binded")
 
+def sendModel():
+  File = "model.pth"
+  message = msg.encode(FORMAT)
+  msg_length = len(message)
+  send_length = str(msg_length).encode(FORMAT)
+  send_length += b' '*(HEADER-len(send_length))
+  server.send(send_length)
+  server.send(message)
+  print(client.recv(2048).decode(FORMAT))
 
 
 def handle_client(conn, addr):
@@ -35,7 +44,7 @@ def handle_client(conn, addr):
             msg = conn.recv(msg_length).decode(FORMAT)
             if msg == CONNECT_MESSAGE:
                 print("Welcome, you are connected to the server")
-                
+
             elif msg == DISCONNECT_MESSAGE:
                 connected = False
             
