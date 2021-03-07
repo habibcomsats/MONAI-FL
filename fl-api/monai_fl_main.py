@@ -71,7 +71,7 @@ def getModel(argsModel):
   #net_glob.train()
 
   # copy weights
-  #w_glob = net_glob.state_dict()
+  w_glob = net_glob.state_dict()
 
   return net_glob
 
