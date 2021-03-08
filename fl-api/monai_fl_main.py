@@ -19,7 +19,7 @@ from utils.options import args_parser
 
 from models.Nets import MLP, CNNMnist, CNNCifar
 #from communication.network import getNetworkConfigurations
-#from communication.server import start 
+from communication.server import start, sendModel  
 # Step 1: Server initiates the FL protocol
 
 # parse args
@@ -100,8 +100,8 @@ def modelBoostrap():
     "optim_state": optimizer.state_dict()
     }
     torch.save(modelCheckPoint, FILE)
-    print(modelCheckPoint)
-    print("local model ready yp send")
+    #print(modelCheckPoint)
+    print("local model ready for sending...")
     model = False
   
   
@@ -118,8 +118,8 @@ def modelBoostrap():
     model.eval()
     # - or -
     # model.train()
-    #print(model)
-    #sendModel(modelCheckPoint)
+    print(model)
+    sendModel(modelCheckPoint)
     print("sending model")
  # else:
    # modelCheckPoint = excuteServerPipeline()
@@ -127,12 +127,14 @@ def modelBoostrap():
     # torch.save(modelCheckPoint, FILE)
     # print(modelCheckPoint)
     # print("local model ready yp send")
-   
+  return modelCheckPoint
 
   
 #   print("Bootstrap model")
 def setModelConfigurations():
   #colecting model configurations from server storage and sending it to devices in the list.
+  modelcp = modelBoostrap()
+  print (modelcp)
   print("send model configurations")
   
 def getModelUpdate():
@@ -154,7 +156,7 @@ def checkPoint(state, filename="modelname.pth.tar"):
 
 def flProtocol():
   modelBoostrap()
-  #setModelConfigurations()
+  setModelConfigurations()
   #getModelUpdate()
   #secureAggregation()
   #setLocalModelUpdate()

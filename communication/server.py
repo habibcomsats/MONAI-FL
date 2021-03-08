@@ -1,7 +1,22 @@
 import socket
 import threading
-
+import pickle
+import torch
 from communication.network import getNetworkConfigurations
+from utils.options import args_parser
+
+args = args_parser()
+args.device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() and args.gpu != -1 else 'cpu')
+
+dataset_train = []
+dataset_test = []
+img_size = []
+
+modelCheckPoint = {
+"epoch": 0,
+    "model_state": {},  
+    "optim_state": {}
+    }
 
 HEADER = 64
 #PORT = 8500
@@ -18,20 +33,19 @@ FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "Disconnect!"
 CONNECT_MESSAGE = "Connected"
 
+#FILE = 'C:/Users/mhreh/research/MONAI-FL/save/models/server/testmodel.pth'
+
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 print("Server is binded")
 
-def sendModel():
-  File = "model.pth"
-  message = msg.encode(FORMAT)
-  msg_length = len(message)
-  send_length = str(msg_length).encode(FORMAT)
-  send_length += b' '*(HEADER-len(send_length))
-  server.send(send_length)
-  server.send(message)
-  print(client.recv(2048).decode(FORMAT))
-
+def sendModel(msg):
+    message = msg#.encode(FORMAT)
+    msg_length = len(message)
+    send_length = str(msg_length).encode(FORMAT)
+    send_length += b' '*(HEADER-len(send_length))
+    client.send(send_length)
+    client.send(message)
 
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
@@ -44,7 +58,8 @@ def handle_client(conn, addr):
             msg = conn.recv(msg_length).decode(FORMAT)
             if msg == CONNECT_MESSAGE:
                 print("Welcome, you are connected to the server")
-
+                print("Server is sending the current model")
+                #sendModel(FILE)
             elif msg == DISCONNECT_MESSAGE:
                 connected = False
             
@@ -52,9 +67,6 @@ def handle_client(conn, addr):
             conn.send("Msg received".encode(FORMAT))
     
     conn.close()
-
-for ip, port in enumerate(fl_participants):
-    print (ip, port)
 
 def start():
     server.listen()
