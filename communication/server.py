@@ -5,21 +5,21 @@ import torch
 import tqdm
 
 from communication.network import getNetworkConfigurations
-from utils.options import args_parser
+#from utils.options import args_parser
 #from flapi.monai_fl_main import modelBoostrap
 
-args = args_parser()
-args.device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() and args.gpu != -1 else 'cpu')
+#args = args_parser()
+#args.device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() and args.gpu != -1 else 'cpu')
 
-dataset_train = []
-dataset_test = []
-img_size = []
+#dataset_train = []
+#dataset_test = []
+#img_size = []
 
-modelCheckPoint = {
-"epoch": 0,
-    "model_state": {},  
-    "optim_state": {}
-    }
+#modelCheckPoint = {
+#"epoch": 0,
+#    "model_state": {},  
+#    "optim_state": {}
+#    }
 
 HEADER = 64
 #PORT = 8500
@@ -80,7 +80,7 @@ def handle_client(conn, addr):
             if msg == CONNECT_MESSAGE:
                 print("Welcome, you are connected to the server")
                 print("Server is sending the current model")
-                modelBoostrap()
+                #modelBoostrap()
                 sendModel(conn)
             elif msg == DISCONNECT_MESSAGE:
                 connected = False
