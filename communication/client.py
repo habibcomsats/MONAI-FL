@@ -1,11 +1,16 @@
 import socket
+import os
 import tqdm
+import time
 
 HEADER  = 64
 PORT = 8000
 FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "!DISCONNECT"
 CONNECT_MESSAGE = "Connected"
+# receive 4096 bytes each time
+BUFFER_SIZE = 4096
+SEPARATOR = "<SEPARATOR>"
 
 SERVER = "127.0.0.1"  
 ADDR = (SERVER,PORT)
@@ -22,10 +27,10 @@ def send(msg):
     send_length += b' '*(HEADER-len(send_length))
     client.send(send_length)
     client.send(message)
-    print(client.recv(2048).decode(FORMAT))
+    #print(client.recv(2048).decode(FORMAT))
 
 def receiveModel():
-    received = client_socket.recv(BUFFER_SIZE).decode()
+    received = client.recv(BUFFER_SIZE).decode()
     filename, filesize = received.split(SEPARATOR)
     # remove absolute path if there is
     FILE = os.path.basename(filename)
@@ -38,8 +43,8 @@ def receiveModel():
     with open(FILE, "wb") as f:
         while True:
             # read 1024 bytes from the socket (receive)
-            bytes_read = client_socket.recv(BUFFER_SIZE)
-            time.sleep(0.000001)
+            bytes_read = client.recv(BUFFER_SIZE)
+            time.sleep(0.00000001)
             if not bytes_read:    
                 print("Nothing is received")
                 # file transmitting is done

@@ -3,6 +3,7 @@ import threading
 import pickle
 import torch
 import tqdm
+import os
 
 from communication.network import getNetworkConfigurations
 #from utils.options import args_parser
@@ -24,6 +25,8 @@ from communication.network import getNetworkConfigurations
 HEADER = 64
 #PORT = 8500
 
+SEPARATOR = "<SEPARATOR>"
+BUFFER_SIZE = 4096 # send 4096 bytes each time step
 fl_participants = getNetworkConfigurations()
 
 SERVER =  fl_participants[0][0] # "127.0.1.1" #socket.gethostbyname(socket.gethostname())
@@ -64,9 +67,9 @@ def sendModel(conn):
             conn.sendall(bytes_read)
             # update the progress bar
             progress.update(len(bytes_read))
-    s.shutdown(socket.SHUT_WR)
+    conn.shutdown(socket.SHUT_WR)
     # close the socket
-    s.close()
+    #conn.close()
 
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
@@ -86,7 +89,7 @@ def handle_client(conn, addr):
                 connected = False
             
             print(f"[{addr}] {msg}")
-            conn.send("Msg received".encode(FORMAT))
+            #conn.send("Msg received".encode(FORMAT))
     
     conn.close()
 
