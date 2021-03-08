@@ -30,6 +30,12 @@ dataset_train = []
 dataset_test = []
 img_size = []
 
+modelCheckPoint = {
+"epoch": 0,
+    "model_state": {},  
+    "optim_state": {}
+    }
+
 argsDataset = args.dataset
 def getDataset(argsDataset):
   # load dataset and split users
@@ -83,7 +89,7 @@ def modelBoostrap():
   
   model = getModel(args.model)
   try:
-    model = torch.load(FILE)
+    modelCheckPoint = torch.load(FILE)
     
   except FileNotFoundError:
     print("Model.pth not found")
@@ -101,17 +107,18 @@ def modelBoostrap():
   
   #model.eval() to be executed when need to update the model at server or client
   if model:
-    optimizer = torch.optim.SGD(model.parameters(), lr=0)
-
-    modelCheckPoint2 = torch.load(FILE)
-    epoch = modelCheckPoint2['epoch']
-    model.load_state_dict(modelCheckPoint2['model_state'])
-    optimizer.load_state_dict(modelCheckPoint2['optim_state'])
-    
+    modelCheckPoint = torch.load(FILE)
+    epoch = modelCheckPoint['epoch']
+    print(epoch)
+    modelState = modelCheckPoint['model_state'] #model.load_state_dict(model['model_state'])
+    print(modelState)
+    optimizerState = (modelCheckPoint['optim_state'])
+    print(optimizerState)
+   # optimizer = torch.optim.SGD(model.parameters(), lr=0)
     model.eval()
     # - or -
     # model.train()
-    print(modelCheckPoint)
+    #print(model)
     #sendModel(modelCheckPoint)
     print("sending model")
  # else:
