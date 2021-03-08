@@ -1,4 +1,5 @@
 import socket
+import tqdm
 
 HEADER  = 64
 PORT = 8000
@@ -23,44 +24,44 @@ def send(msg):
     client.send(message)
     print(client.recv(2048).decode(FORMAT))
 
-def receiveModel(filepath):
-  #File = "model.pth"
-    mcp = client.recv(2048).decode(FORMAT)
-    print(mcp)
-    # modelCheckPoint = {
-    #     "epoch": 90,
-    #     "model_state": model.state_dict(),  
-    #     "optim_state": optimizer.state_dict()
-    #     }
-    # print(modelCheckPoint)
-    # torch.save(modelCheckPoint, FILE)
+def receiveModel():
+    received = client_socket.recv(BUFFER_SIZE).decode()
+    filename, filesize = received.split(SEPARATOR)
+    # remove absolute path if there is
+    FILE = os.path.basename(filename)
+    # convert to integer
+    filesize = int(filesize)
+
+    # start receiving the file from the socket
+    # and writing to the file stream
+    progress = tqdm.tqdm(range(filesize), f"Receiving {filename}", unit="B", unit_scale=True, unit_divisor=1024)
+    with open(FILE, "wb") as f:
+        while True:
+            # read 1024 bytes from the socket (receive)
+            bytes_read = client_socket.recv(BUFFER_SIZE)
+            time.sleep(0.000001)
+            if not bytes_read:    
+                print("Nothing is received")
+                # file transmitting is done
+                break
+            # write to the file the bytes we just received
+            #print(bytes_read)
+            f.write(bytes_read)
+            # update the progress bar
+            progress.update(len(bytes_read))
+
+    # close the client socket
+    #client_socket.close()
+    # close the server socket
+    #client.close()
         
-def handle_server():
-    #print(f"[NEW CONNECTION] {addr} connected.")
-    connected = True
-    while connected:
-        msg_length = client.recv(HEADER).decode(FORMAT)
-        if msg_length:
-            msg_length = int(msg_length)
-            msg = client.recv(msg_length)#.decode(FORMAT)
-            #if msg == CONNECT_MESSAGE:
-            #   print("Client is waiting for model")
-            #    print("client is receving model")
-            receiveModel(FILE)
-            #elif msg == DISCONNECT_MESSAGE:
-            connected = False
-            
-            #print(f"[{addr}] {msg}")
-            client.send("Msg received".encode(FORMAT))
-    
-   #conn.close()
 
 
 
 
 send("Connected")
 
-handle_server()
+receiveModel()
 
 send("Hello Everyone")
 input()
