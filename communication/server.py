@@ -2,8 +2,11 @@ import socket
 import threading
 import pickle
 import torch
+import tqdm
+
 from communication.network import getNetworkConfigurations
 from utils.options import args_parser
+#from flapi.monai_fl_main import modelBoostrap
 
 args = args_parser()
 args.device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() and args.gpu != -1 else 'cpu')
@@ -33,19 +36,37 @@ FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "Disconnect!"
 CONNECT_MESSAGE = "Connected"
 
-#FILE = 'C:/Users/mhreh/research/MONAI-FL/save/models/server/testmodel.pth'
+FILE = 'C:/Users/mhreh/research/MONAI-FL/save/models/server/testmodel.pth'
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 print("Server is binded")
 
-def sendModel(msg):
-    message = msg#.encode(FORMAT)
-    msg_length = len(message)
-    send_length = str(msg_length).encode(FORMAT)
-    send_length += b' '*(HEADER-len(send_length))
-    client.send(send_length)
-    client.send(message)
+def sendModel(conn):
+    # the name of file we want to send, make sure it exists
+    filename = "testmodel.pth"
+    # get the file size
+    filesize = os.path.getsize(FILE)
+    # send the filename and filesize
+    conn.send(f"{filename}{SEPARATOR}{filesize}".encode())
+
+    # start sending the file
+    progress = tqdm.tqdm(range(filesize), f"Sending {filename}", unit="B", unit_scale=True, unit_divisor=1024)
+    with open(FILE, "rb") as f:
+        while True:
+            # read the bytes from the file
+            bytes_read = f.read(BUFFER_SIZE)
+            if not bytes_read:
+                # file transmitting is done
+                break
+            # we use sendall to assure transimission in 
+            # busy networks
+            conn.sendall(bytes_read)
+            # update the progress bar
+            progress.update(len(bytes_read))
+    s.shutdown(socket.SHUT_WR)
+    # close the socket
+    s.close()
 
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
@@ -59,7 +80,8 @@ def handle_client(conn, addr):
             if msg == CONNECT_MESSAGE:
                 print("Welcome, you are connected to the server")
                 print("Server is sending the current model")
-                #sendModel(FILE)
+                modelBoostrap()
+                sendModel(conn)
             elif msg == DISCONNECT_MESSAGE:
                 connected = False
             
