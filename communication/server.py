@@ -45,7 +45,25 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 print("Server is binded")
 
-def sendModel(conn):
+def sendMessage(conn, msg):
+    message = msg.encode(FORMAT)
+    msg_length = len(message)
+    send_length = str(msg_length).encode(FORMAT)
+    send_length += b' '*(HEADER-len(send_length))
+    conn.send(send_length)
+    conn.send(message)
+    #print(client.recv(2048).decode(FORMAT))
+
+def sendModelArchitecture(conn, msg):
+    message = msg.encode(FORMAT)
+    msg_length = len(message)
+    send_length = str(msg_length).encode(FORMAT)
+    send_length += b' '*(HEADER-len(send_length))
+    conn.send(send_length)
+    conn.send(message)
+    #print(client.recv(2048).decode(FORMAT))
+
+def sendTrainedModel(conn):
     # the name of file we want to send, make sure it exists
     filename = "testmodel.pth"
     # get the file size
@@ -71,6 +89,106 @@ def sendModel(conn):
     # close the socket
     #conn.close()
 
+def sendGlobalModelWeights(conn, msg):
+    message = msg.encode(FORMAT)
+    msg_length = len(message)
+    send_length = str(msg_length).encode(FORMAT)
+    send_length += b' '*(HEADER-len(send_length))
+    conn.send(send_length)
+    conn.send(message)
+    #print(client.recv(2048).decode(FORMAT))
+
+def sendGlobalModelParameters(conn, msg):
+    message = msg.encode(FORMAT)
+    msg_length = len(message)
+    send_length = str(msg_length).encode(FORMAT)
+    send_length += b' '*(HEADER-len(send_length))
+    conn.send(send_length)
+    conn.send(message)
+    #print(client.recv(2048).decode(FORMAT))
+
+def sendTrainingConfigurations(conn, msg):
+    message = msg.encode(FORMAT)
+    msg_length = len(message)
+    send_length = str(msg_length).encode(FORMAT)
+    send_length += b' '*(HEADER-len(send_length))
+    conn.send(send_length)
+    conn.send(message)
+    #print(client.recv(2048).decode(FORMAT))
+
+def receiveMessage(conn, addr):
+    connected = True
+    while connected:
+        msg_length = client.recv(HEADER).decode(FORMAT)
+        if msg_length:
+            msg_length = int(msg_length)
+            msg = client.recv(msg_length).decode(FORMAT)
+            if msg == CONNECT_MESSAGE:
+                print("Welcome, you are connected to the server")
+                print("Server is sending the current model")
+                #modelBoostrap()
+                #sendModel(conn)
+            elif msg == DISCONNECT_MESSAGE:
+                connected = False
+            
+            print(f"[{addr}] {msg}")
+            #conn.send("Msg received".encode(FORMAT))
+  
+def receiveModelWeights(conn, addr):
+    connected = True
+    while connected:
+        msg_length = client.recv(HEADER).decode(FORMAT)
+        if msg_length:
+            msg_length = int(msg_length)
+            msg = client.recv(msg_length).decode(FORMAT)
+            if msg == CONNECT_MESSAGE:
+                print("Welcome, you are connected to the server")
+                print("Server is sending the current model")
+                #modelBoostrap()
+                #sendModel(conn)
+            elif msg == DISCONNECT_MESSAGE:
+                connected = False
+            
+            print(f"[{addr}] {msg}")
+            #conn.send("Msg received".encode(FORMAT))
+
+def receiveModelParameters(conn, addr):
+    connected = True
+    while connected:
+        msg_length = client.recv(HEADER).decode(FORMAT)
+        if msg_length:
+            msg_length = int(msg_length)
+            msg = client.recv(msg_length).decode(FORMAT)
+            if msg == CONNECT_MESSAGE:
+                print("Welcome, you are connected to the server")
+                print("Server is sending the current model")
+                #modelBoostrap()
+                #sendModel(conn)
+            elif msg == DISCONNECT_MESSAGE:
+                connected = False
+            
+            print(f"[{addr}] {msg}")
+            #conn.send("Msg received".encode(FORMAT))
+
+def receiveTrainingConfigClients(conn, addr):
+    connected = True
+    while connected:
+        msg_length = client.recv(HEADER).decode(FORMAT)
+        if msg_length:
+            msg_length = int(msg_length)
+            msg = client.recv(msg_length).decode(FORMAT)
+            if msg == CONNECT_MESSAGE:
+                print("Welcome, you are connected to the server")
+                print("Server is sending the current model")
+                #modelBoostrap()
+                #sendModel(conn)
+            elif msg == DISCONNECT_MESSAGE:
+                connected = False
+            
+            print(f"[{addr}] {msg}")
+            #conn.send("Msg received".encode(FORMAT))
+
+
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
 
@@ -84,7 +202,7 @@ def handle_client(conn, addr):
                 print("Welcome, you are connected to the server")
                 print("Server is sending the current model")
                 #modelBoostrap()
-                sendModel(conn)
+                sendTrainedModel(conn)
             elif msg == DISCONNECT_MESSAGE:
                 connected = False
             
@@ -105,4 +223,4 @@ def start():
 
 
 print("[STARTING] server is starting")
-start()
+#start()
