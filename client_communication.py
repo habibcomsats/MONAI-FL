@@ -1,1 +1,0 @@
-# This file will store all the communication related functions from the client end. This will be directly communicating with server
