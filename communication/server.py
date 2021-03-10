@@ -1,13 +1,19 @@
+import sys
+#path for linux distribution
+# sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
+#path for windows installation
+sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL')
+
 import socket
 import threading
-import pickle
+#import pickle
 import torch
 import tqdm
 import os
+import json
 
 from communication.network import getNetworkConfigurations
-#from utils.options import args_parser
-#from flapi.monai_fl_main import modelBoostrap
+from utils.options import args_parser
 
 #args = args_parser()
 #args.device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() and args.gpu != -1 else 'cpu')
@@ -16,11 +22,11 @@ from communication.network import getNetworkConfigurations
 #dataset_test = []
 #img_size = []
 
-#modelCheckPoint = {
-#"epoch": 0,
-#    "model_state": {},  
-#    "optim_state": {}
-#    }
+modelCheckPoint = {
+    "epoch": 0,
+    "model_state": {},  
+    "optim_state": {}
+    }
 
 HEADER = 64
 #PORT = 8500
@@ -39,29 +45,29 @@ FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "Disconnect!"
 CONNECT_MESSAGE = "Connected"
 
+GLOBAL_MODEL_MESSAGE = "SendGlobalModel"
+MODEL_CHECKPOINT_MESSAGE = "SendModelCheckPoint"
 FILE = 'C:/Users/mhreh/research/MONAI-FL/save/models/server/testmodel.pth'
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 print("Server is binded")
 
-def sendMessage(conn, msg):
+def sendMessage(msg, conn):
     message = msg.encode(FORMAT)
     msg_length = len(message)
     send_length = str(msg_length).encode(FORMAT)
     send_length += b' '*(HEADER-len(send_length))
     conn.send(send_length)
     conn.send(message)
-    #print(client.recv(2048).decode(FORMAT))
 
-def sendModelArchitecture(conn, msg):
-    message = msg.encode(FORMAT)
+def sendDictMessage(msg, conn):
+    message = json.dumps(msg) #.encode(FORMAT)
     msg_length = len(message)
     send_length = str(msg_length).encode(FORMAT)
     send_length += b' '*(HEADER-len(send_length))
     conn.send(send_length)
     conn.send(message)
-    #print(client.recv(2048).decode(FORMAT))
 
 def sendTrainedModel(conn):
     # the name of file we want to send, make sure it exists
@@ -89,7 +95,7 @@ def sendTrainedModel(conn):
     # close the socket
     #conn.close()
 
-def sendGlobalModelWeights(conn, msg):
+def sendModelCheckPoint(checkPoint):
     message = msg.encode(FORMAT)
     msg_length = len(message)
     send_length = str(msg_length).encode(FORMAT)
@@ -98,43 +104,15 @@ def sendGlobalModelWeights(conn, msg):
     conn.send(message)
     #print(client.recv(2048).decode(FORMAT))
 
-def sendGlobalModelParameters(conn, msg):
-    message = msg.encode(FORMAT)
-    msg_length = len(message)
-    send_length = str(msg_length).encode(FORMAT)
-    send_length += b' '*(HEADER-len(send_length))
-    conn.send(send_length)
-    conn.send(message)
-    #print(client.recv(2048).decode(FORMAT))
-
-def sendTrainingConfigurations(conn, msg):
-    message = msg.encode(FORMAT)
-    msg_length = len(message)
-    send_length = str(msg_length).encode(FORMAT)
-    send_length += b' '*(HEADER-len(send_length))
-    conn.send(send_length)
-    conn.send(message)
-    #print(client.recv(2048).decode(FORMAT))
-
-def receiveMessage(conn, addr):
-    connected = True
-    while connected:
-        msg_length = client.recv(HEADER).decode(FORMAT)
-        if msg_length:
-            msg_length = int(msg_length)
-            msg = client.recv(msg_length).decode(FORMAT)
-            if msg == CONNECT_MESSAGE:
-                print("Welcome, you are connected to the server")
-                print("Server is sending the current model")
-                #modelBoostrap()
-                #sendModel(conn)
-            elif msg == DISCONNECT_MESSAGE:
-                connected = False
-            
-            print(f"[{addr}] {msg}")
-            #conn.send("Msg received".encode(FORMAT))
+def receiveMessage(conn):
+    retmsg = ''
+    msg_length = conn.recv(HEADER).decode(FORMAT)
+    if msg_length:
+        msg_length = int(msg_length)
+        retmsg = conn.recv(msg_length).decode(FORMAT)
+    return retmsg
   
-def receiveModelWeights(conn, addr):
+def receiveModelCheckpoints(conn, addr):
     connected = True
     while connected:
         msg_length = client.recv(HEADER).decode(FORMAT)
@@ -151,64 +129,26 @@ def receiveModelWeights(conn, addr):
             
             print(f"[{addr}] {msg}")
             #conn.send("Msg received".encode(FORMAT))
-
-def receiveModelParameters(conn, addr):
-    connected = True
-    while connected:
-        msg_length = client.recv(HEADER).decode(FORMAT)
-        if msg_length:
-            msg_length = int(msg_length)
-            msg = client.recv(msg_length).decode(FORMAT)
-            if msg == CONNECT_MESSAGE:
-                print("Welcome, you are connected to the server")
-                print("Server is sending the current model")
-                #modelBoostrap()
-                #sendModel(conn)
-            elif msg == DISCONNECT_MESSAGE:
-                connected = False
-            
-            print(f"[{addr}] {msg}")
-            #conn.send("Msg received".encode(FORMAT))
-
-def receiveTrainingConfigClients(conn, addr):
-    connected = True
-    while connected:
-        msg_length = client.recv(HEADER).decode(FORMAT)
-        if msg_length:
-            msg_length = int(msg_length)
-            msg = client.recv(msg_length).decode(FORMAT)
-            if msg == CONNECT_MESSAGE:
-                print("Welcome, you are connected to the server")
-                print("Server is sending the current model")
-                #modelBoostrap()
-                #sendModel(conn)
-            elif msg == DISCONNECT_MESSAGE:
-                connected = False
-            
-            print(f"[{addr}] {msg}")
-            #conn.send("Msg received".encode(FORMAT))
-
 
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
-
     connected = True
     while connected:
-        msg_length = conn.recv(HEADER).decode(FORMAT)
-        if msg_length:
-            msg_length = int(msg_length)
-            msg = conn.recv(msg_length).decode(FORMAT)
-            if msg == CONNECT_MESSAGE:
-                print("Welcome, you are connected to the server")
-                print("Server is sending the current model")
-                #modelBoostrap()
+        mssg = receiveMessage(conn)
+        modelCheckPoint = torch.load(FILE)
+        if mssg == CONNECT_MESSAGE:
+            sendMessage(mssg, conn)
+            message = receiveMessage(conn)
+            print(message)
+            if message == GLOBAL_MODEL_MESSAGE:
+                print("Server is sending the current global model")
                 sendTrainedModel(conn)
-            elif msg == DISCONNECT_MESSAGE:
-                connected = False
-            
-            print(f"[{addr}] {msg}")
-            #conn.send("Msg received".encode(FORMAT))
-    
+                sendTrainingConfigurations(conn)
+            elif message == MODEL_CHECKPOINT_MESSAGE:
+                print("Server is sending the current global model checkpoint")
+                sendModelCheckPoint(modelcheckPoint)
+        elif mssg == DISCONNECT_MESSAGE:
+                connected = False    
     conn.close()
 
 def start():
@@ -223,4 +163,23 @@ def start():
 
 
 print("[STARTING] server is starting")
-#start()
+start()
+
+
+
+
+
+
+
+
+# modelState = modelCheckPoint['model_state'] 
+#                 sendDictMessage(modelState, conn)
+#                 print("Server is sending the model weights")
+#             elif message == MODEL_PARAMETER_MESSAGE:
+#                 optimizerState = (modelCheckPoint['optim_state'])
+#                 sendDictMessage(optimizerState, conn)
+#                 print("Server is sending the model parameters")
+#             elif message == MODEL_CONFIGURATIONS_MESSAGE:
+#                 epoch = modelCheckPoint['epoch']
+#                 sendMessage(epoch, conn)
+#                 print("Server is sending model configurations")
