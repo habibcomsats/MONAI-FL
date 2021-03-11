@@ -1,24 +1,34 @@
-#!pip install -q "monai[gdown, nibabel, tqdm, itk]"
-
 import os
 import numpy as np
-#%matplotlib inline
+# %matplotlib inline
 import matplotlib.pyplot as plt
 from PIL import Image
 
 import torch
+torch.cuda.empty_cache()
+torch.cuda.memory_summary(device=None, abbreviated=False)
+
+import gc
+#del variables
+gc.collect()
+
 from torch.utils.data import Dataset, DataLoader
 
 from monai.config import print_config
-from monai.transforms import \
-    Compose, LoadPNG, AddChannel, ScaleIntensity, ToTensor, RandRotate, RandFlip, RandZoom
+from monai.transforms import Compose, LoadImage, AddChannel, ScaleIntensity, ToTensor, RandRotate, RandFlip, RandZoom
 from monai.networks.nets import densenet121
 from monai.metrics import compute_roc_auc
 
 np.random.seed(0)
 print_config()
 
-data_dir = 'C:/Users/mhreh/research/MedNIST/'
+"""
+## Read image filenames from the dataset folders
+First of all, check the dataset files and show some statistics.
+There are 6 folders in the dataset: Hand, AbdomenCT, CXR, ChestCT, BreastMRI, HeadCT,
+which should be used as the labels to train our classification model."""
+
+data_dir = '/home/habib/myResearch/data/MedNIST/'
 class_names = sorted([x for x in os.listdir(data_dir) if os.path.isdir(os.path.join(data_dir, x))])
 num_class = len(class_names)
 image_files = [[os.path.join(data_dir, class_name, x) 
@@ -37,6 +47,8 @@ print("Image dimensions:", image_width, "x", image_height)
 print("Label names:", class_names)
 print("Label counts:", [len(image_files[i]) for i in range(num_class)])
 
+"""## Visualise some randomly picked examples from the dataset"""
+
 plt.subplots(3, 3, figsize=(8, 8))
 for i,k in enumerate(np.random.randint(num_total, size=9)):
     im = Image.open(image_file_list[k])
@@ -46,6 +58,10 @@ for i,k in enumerate(np.random.randint(num_total, size=9)):
     plt.imshow(arr, cmap='gray', vmin=0, vmax=255)
 plt.tight_layout()
 plt.show()
+
+"""## Prepare training, validation and test data lists
+Randomly select 10% of the dataset as validation and 10% as test.
+"""
 
 valid_frac, test_frac = 0.1, 0.1
 trainX, trainY = [], []
@@ -66,8 +82,10 @@ for i in range(num_total):
 
 print("Training count =",len(trainX),"Validation count =", len(valX), "Test count =",len(testX))
 
+"""## Define MONAI transforms, Dataset and Dataloader to pre-process data"""
+
 train_transforms = Compose([
-    LoadPNG(image_only=True),
+    LoadImage(image_only=True),
     AddChannel(),
     ScaleIntensity(),
     RandRotate(range_x=15, prob=0.5, keep_size=True),
@@ -77,7 +95,7 @@ train_transforms = Compose([
 ])
 
 val_transforms = Compose([
-    LoadPNG(image_only=True),
+    LoadImage(image_only=True),
     AddChannel(),
     ScaleIntensity(),
     ToTensor()
@@ -97,15 +115,28 @@ class MedNISTDataset(Dataset):
         return self.transforms(self.image_files[index]), self.labels[index]
 
 train_ds = MedNISTDataset(trainX, trainY, train_transforms)
-train_loader = DataLoader(train_ds, batch_size=300, shuffle=True, num_workers=10)
+train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=10)
 
 val_ds = MedNISTDataset(valX, valY, val_transforms)
-val_loader = DataLoader(val_ds, batch_size=300, num_workers=10)
+val_loader = DataLoader(val_ds, batch_size=64, num_workers=10)
 
 test_ds = MedNISTDataset(testX, testY, val_transforms)
-test_loader = DataLoader(test_ds, batch_size=300, num_workers=10)
+test_loader = DataLoader(test_ds, batch_size=64, num_workers=10)
 
-device = torch.device("cuda:0")
+"""## Define network and optimizer
+1. Set learning rate for how much the model is updated per batch.
+2. Set total epoch number, as we have shuffle and random transforms, so the training data of every epoch is different.
+And as this is just a get start tutorial, let's just train 4 epochs.
+If train 10 epochs, the model can achieve 100% accuracy on test dataset.
+3. Use DenseNet from MONAI and move to GPU devide, this DenseNet can support both 2D and 3D classification tasks.
+4. Use Adam optimizer.
+"""
+if torch.cuda.is_available():  
+  dev = "cuda:0" 
+else:  
+  dev = "cpu"  
+device = torch.device(dev)
+
 model = densenet121(
     spatial_dims=2,
     in_channels=1,
@@ -113,8 +144,13 @@ model = densenet121(
 ).to(device)
 loss_function = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), 1e-5)
-epoch_num = 1 #4
+epoch_num = 4
 val_interval = 1
+
+"""## Model training
+Execute a typical PyTorch training that run epoch loop and step loop, and do validation after every epoch.
+Will save the model weights to file if got best validation accuracy.
+"""
 
 best_metric = -1
 best_metric_epoch = -1
@@ -164,3 +200,40 @@ for epoch in range(epoch_num):
                   f" at epoch: {best_metric_epoch}")
 print(f"train completed, best_metric: {best_metric:.4f} at epoch: {best_metric_epoch}")
 
+"""## Plot the loss and metric"""
+
+plt.figure('train', (12, 6))
+plt.subplot(1, 2, 1)
+plt.title("Epoch Average Loss")
+x = [i + 1 for i in range(len(epoch_loss_values))]
+y = epoch_loss_values
+plt.xlabel('epoch')
+plt.plot(x, y)
+plt.subplot(1, 2, 2)
+plt.title("Validation: Area under the ROC curve")
+x = [val_interval * (i + 1) for i in range(len(metric_values))]
+y = metric_values
+plt.xlabel('epoch')
+plt.plot(x, y)
+plt.show()
+
+"""## Evaluate the model on test dataset
+After training and validation, we already got the best model on validation test.
+We need to evaluate the model on test dataset to check whether it's robust and not over-fitting.
+We'll use these predictions to generate a classification report.
+"""
+
+model.load_state_dict(torch.load('best_metric_model.pth'))
+model.eval()
+y_true = list()
+y_pred = list()
+with torch.no_grad():
+    for test_data in test_loader:
+        test_images, test_labels = test_data[0].to(device), test_data[1].to(device)
+        pred = model(test_images).argmax(dim=1)
+        for i in range(len(pred)):
+            y_true.append(test_labels[i].item())
+            y_pred.append(pred[i].item())
+
+from sklearn.metrics import classification_report
+print(classification_report(y_true, y_pred, target_names=class_names, digits=4))
