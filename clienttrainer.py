@@ -6,8 +6,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import os
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
+
 
 
 class Net(nn.Module):
@@ -73,6 +75,20 @@ def test(model, device, test_loader):
 
 
 def main():
+    debug = 1  # 0: normal mode 1: debug mode
+
+    savedir = 'client_model'
+    checkpointdir = os.path.join('./checkpoints', savedir)
+
+    if not debug:
+        os.mkdir(checkpointdir)
+        print('log directory: %s' % os.path.join('./logs', savedir))
+        print('checkpoints directory: %s' % checkpointdir)
+
+    # Set the logger
+    if not debug:
+        logger = Logger(os.path.join('./logs/', savedir))
+
     # Training settings
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
     parser.add_argument('--batch-size', type=int, default=64, metavar='N',
@@ -94,6 +110,8 @@ def main():
     parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                         help='how many batches to wait before logging training status')
     parser.add_argument('--save-model', action='store_true', default=False,
+                        help='For Saving the current Model')
+    parser.add_argument('--resume-model', action='store_true', default=False,
                         help='For Saving the current Model')
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
@@ -132,8 +150,65 @@ def main():
         scheduler.step()
 
     if args.save_model:
-        torch.save(model.state_dict(), "mnist_cnn.pt")
+        torch.save(model.state_dict(), checkpointdir)
+    elif args.saveWeights:
+        torch.save(model.state_dict(), checkpointdir)
+    elif args.resume:
+        if os.path.isfile(checkpointdir):
+            print("=> loading checkpoint '{}'".format(checkpointdir))
+            checkpoint = torch.load(checkpointdir)
+            #args.start_epoch = checkpoint['epoch']
+            #best_prec1 = checkpoint['best_prec1']
+            model.load_state_dict(checkpoint['state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer'])
+            print("=> loaded checkpoint '{}' (epoch {}, best_prec1 @ Source {})"
+                  .format(args.resume))
+        else:
+            print("=> no checkpoint found at '{}'".format(args.resume))
+
+
 
 
 if __name__ == '__main__':
     main()
+
+
+#####
+#####
+# code from other repo
+    global args 
+    args = parser.parse_args()
+
+    
+
+    if args.resume:
+        if os.path.isfile(checkpointdir):
+            print("=> loading checkpoint '{}'".format(checkpointdir))
+            checkpoint = torch.load(checkpointdir)
+            #args.start_epoch = checkpoint['epoch']
+            #best_prec1 = checkpoint['best_prec1']
+            model.load_state_dict(checkpoint['state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer'])
+            print("=> loaded checkpoint '{}' (epoch {}, best_prec1 @ Source {})"
+                  .format(args.resume))
+        else:
+            print("=> no checkpoint found at '{}'".format(args.resume))
+
+    if args.evaluate:
+        # //model evaluation logic
+        return True
+
+save_checkpoint({
+    'epoch': epoch + 1,
+    'state_dict': model.state_dict(),
+    #'best_prec1': best_prec1,
+    #'last_prec1': test_prec1,
+    'optimizer': optimizer.state_dict()}, checkpointdir)
+
+def save_checkpoint(state, checkpointdir):
+    fullpath = os.path.join(checkpointdir, 'client_checkpoint.pth.tar')
+    fullpath_best = os.path.join(checkpointdir, 'client_model_best.pth.tar')
+    torch.save(state, fullpath)
+
+    if is_best:
+        shutil.copyfile(fullpath, fullpath_best)
