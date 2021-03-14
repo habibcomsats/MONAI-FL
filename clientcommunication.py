@@ -20,10 +20,10 @@ FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "!DISCONNECT"
 CONNECT_MESSAGE = "Connected"
 
-GLOBAL_MODEL_MESSAGE = "SendGlobalModel"
-MODEL_WEIGHTS_MESSAGE = "SendModelWeights"
-MODEL_PARAMETERS_MESSAGE = "SendModelParameters"
-MODEL_CONFIGURATION_MESSAGE = "SendModelConfigurations"
+MODEL_MESSAGE = "model"
+WEIGHTS_MESSAGE = "weights"
+PARAMETERS_MESSAGE = "parameters"
+CONFIGURATION_MESSAGE = "configurations"
 
 # receive 4096 bytes each time
 BUFFER_SIZE = 4096
@@ -88,6 +88,7 @@ def sendModelMessage(msg):
         client.shutdown(socket.SHUT_WR)
         #close the socket
         #conn.close()
+
     elif msg == "local_weights":
         message = json.dumps(msg) #.encode(FORMAT)
         msg_length = len(message)
@@ -95,6 +96,7 @@ def sendModelMessage(msg):
         send_length += b' '*(HEADER-len(send_length))
         client.send(send_length)
         client.send(message)
+
     elif msg == "local_parameters":
         message = json.dumps(msg) #.encode(FORMAT)
         msg_length = len(message)
@@ -102,6 +104,7 @@ def sendModelMessage(msg):
         send_length += b' '*(HEADER-len(send_length))
         client.send(send_length)
         client.send(message)
+
     elif msg == "local_configurations":
         message = json.dumps(msg) #.encode(FORMAT)
         msg_length = len(message)
@@ -167,12 +170,19 @@ def handle_server():
     sendMessage(CONNECT_MESSAGE)
     server_message  = receiveMessage()
     print(server_message)
+    
+    print("Starting FL protocol at client")
 
-    model = modelBootstrap 
+    model = modelBootstrap() 
+    modelCP = torch.load(FILE)
     if model:
         print("i have model")
-        sendMessage(GLOBAL_WEIGHTS_MESSAGE)
-        Local_Weights = receiveModelMessage(GLOBAL_WEIGHTS_MESSAGE)
+        sendMessage(WEIGHTS_MESSAGE)
+        Global_Weights = receiveModelMessage(WEIGHTS_MESSAGE)
+        Global_Params = receiveModelMessage(PARAMETERS_MESSAGE)
+        modelCP['model_state'] = Global_Weights
+        model.save(modelCP, FILE)
+
     else:
         sendMessage(GLOBAL_MODEL_MESSAGE)
         
