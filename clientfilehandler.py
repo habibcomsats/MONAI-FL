@@ -66,4 +66,3 @@ def modelBootstrap():
     model = False
     return modelCheckPoint
 
-modelBootstrap()
