@@ -1,9 +1,9 @@
 # This file will store all the communication related functions from the server end. This will be directly communicating with client
 import sys
 #path for linux distribution
-sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
+#sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
 #path for windows installation
-#sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL')
+sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL')
 
 import socket
 import threading
@@ -41,9 +41,9 @@ PARAMETERS_MESSAGE = "parameters"
 CONFIGURATION_MESSAGE = "configurations"
 
 #path for linux distribution
-FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
+#FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
 #path for windows installation
-#FILE = 'C:/Users/mhreh/research/MONAI-FL/save/models/server/testmodel.pth'
+FILE = 'C:/Users/mhreh/research/MONAI-FL/save/models/server/testmodel.pth'
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
@@ -195,15 +195,22 @@ def receiveModelMessage(msg, conn):
         return msg
 
 
-def handle_communication(conn, addr):
+def handle_communication(ep_round, conn, addr):
+    modelCP = torch.load(FILE)
     mssg = receiveMessage(conn)
     if mssg == CONNECT_MESSAGE:
         sendMessage("Welcome! You are connected with the sever...", conn)
         print("Starting FL protocol at client with client", str(addr))
 
-        sendMessage(str(GlobalEpochs), conn)
-        sendMessage(str(LocalEpochs), conn)
-
+        if ep_round == 0:
+            sendMessage(str(GlobalEpochs), conn)
+            sendModelMessage(message, modelCP, conn)
+            print("Model Checkpoint Succeccsfully transferred")
+        else:
+            #print("Server is sending the current global model weights")
+            sendModelMessage(message, modelCP['model_state'], conn)
+            print("Model Weights Succeccsfully transferred")
+            
         message = receiveMessage(conn)
         print(message)
         #Repeat = True
@@ -212,8 +219,7 @@ def handle_communication(conn, addr):
             modelCP = torch.load(FILE)
             if message == MODEL_MESSAGE:
                 #print("Server is sending the current global model")
-                sendModelMessage(message, modelCP, conn)
-                print("Model Checkpoint Succeccsfully transferred")
+                
 
             elif message == WEIGHTS_MESSAGE:
                 #print("Server is sending the current global model weights")
@@ -248,11 +254,16 @@ def handle_client(conn, addr):
     while glob_epoch < GlobalEpochs:
         if(glob_epoch == 0):
             print("We are going to begin training for " + str(GlobalEpochs) + " rounds")
+            Local_Weights = handle_communication(glob_epoch, conn, addr)
+            GlobalWeights = GlobalWeights.add(Local_Weights)
         else:
             print("This is round " + str(glob_epoch) + " of total " + str(GlobalEpochs) + " rounds")
+            Local_Weights = handle_communication(glob_epoch, conn, addr)
+            GlobalWeights = GlobalWeights.add(Local_Weights)
         glob_epoch += 1
     
-    handle_communication(conn, addr)
+    #AvgWeights = FedAvg(GlobalWeights)
+    
     
     # connected = True
     # while connected:

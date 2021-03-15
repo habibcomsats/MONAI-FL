@@ -2,9 +2,9 @@
 
 import sys
 #path for linux distribution
-sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
+#sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
 #path for windows installation
-#sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL')
+sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL')
 
 import socket
 import torch
@@ -38,9 +38,9 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
 
 #path for linux distribution
-FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
+#FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
 #path for windows installation
-#FILE = 'C:/Users/mhreh/research/MONAI-FL/save/models/server/testmodel.pth'
+FILE = 'C:/Users/mhreh/research/MONAI-FL/save/models/server/testmodel.pth'
 
 modelCheckPoint = {
     "epoch": 0,
@@ -185,30 +185,45 @@ def receiveModelMessage(msg):
     #         msg = json.loads(msg)
     #     return msg
     
+def handle_communication_client(epround):
+
+
+
 def handle_server():
     sendMessage(CONNECT_MESSAGE)
     server_message  = receiveMessage()
     print(server_message)
-
     print("Starting FL protocol at client")
-    
-    #sendMessage(GLOBAL_EPOCHS)
-    glob_epochs = receiveMessage()
-    print("Server will execute " + glob_epochs + " in total")
-    
-    sendMessage(LOCAL_EPOCHS)
-    loc_epochs = receiveMessage()
-    print("Client will execute " + loc_epochs + " in each local round")
-    
+       
+    connected - True
+    while connected:
+        model = modelBootstrap()
+        glob_epochs = receiveMessage()
+        print("Global Epoch: " + glob_epochs)
+        if(glob_epoch == 0):
+            print("We are going to begin training for " + str(GlobalEpochs) + " rounds")
+            print("Acquiring latest model")
+            sendMessage(MODEL_MESSAGE)
+            receiveModelMessage(MODEL_MESSAGE)
+            #ExecuteLocalPipeline(local_epoch)
+            modelCP = torch.load(FILE)
+            sendModelMessage(modelCP['model_state'])
 
+        elif 
+            client_epoch < glob_epochs:
+            print("Global Epoch: ", glob_epochs)
+            sendMessage(WEIGHTS_MESSAGE)
+            Global_Weights = receiveModelMessage(WEIGHTS_MESSAGE)
+            modelCP = torch.load(FILE)
+            modelCP['model_state'] = Global_Weights
+            model.save(modelCP, FILE)
+            #ExecuteLocalPipeline(local_epoch)
+            modelCP = torch.load(FILE)
+            sendModelMessage(modelCP['model_state'])
 
-    model = modelBootstrap() 
-    if model:
-
-        print("Acquiring latest model ")
-        send
-        sendMessage(WEIGHTS_MESSAGE)
-        Global_Weights = receiveModelMessage(WEIGHTS_MESSAGE)
+        #sendModelMessage(MODEL_MESSAGE)
+        #sendMessage(WEIGHTS_MESSAGE)
+        #Global_Weights = receiveModelMessage(WEIGHTS_MESSAGE)
         #print(Global_Weights)
      #   Global_Params = receiveModelMessage(PARAMETERS_MESSAGE)
      #   print(Global_Params)
