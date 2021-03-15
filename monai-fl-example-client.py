@@ -28,7 +28,11 @@ First of all, check the dataset files and show some statistics.
 There are 6 folders in the dataset: Hand, AbdomenCT, CXR, ChestCT, BreastMRI, HeadCT,
 which should be used as the labels to train our classification model."""
 
-data_dir = '/home/habib/myResearch/data/MedNIST/'
+#windows version
+data_dir = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/'
+
+#Linux version
+#data_dir = '/home/habib/myResearch/data/MedNIST/'
 debug = 1  # 0: normal mode 1: debug mode
 
 savedir = 'client_model'
