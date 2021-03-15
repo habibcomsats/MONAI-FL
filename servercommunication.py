@@ -7,12 +7,12 @@ sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
 
 import socket
 import threading
-#import pickle
+import pickle
 import torch
 import tqdm
 import os
-import json
 import time
+import json
 
 from serverfilehandler import modelBootstrap
 from communication.network import getNetworkConfigurations
@@ -57,6 +57,16 @@ modelCheckPoint = {
 
 GlobalWeights = torch.tensor([])
 GlobalEpochs = 3 #args_parser()
+LocalEpochs = 3
+def recvall(n, conn):
+    # Helper function to recv n bytes or return None if EOF is hit
+    data = bytearray()
+    while len(data) < n:
+        packet = conn.recv(n - len(data))
+        if not packet:
+            return None
+        data.extend(packet)
+    return data
 
 def sendMessage(msg, conn):
     message = msg.encode(FORMAT)
@@ -74,7 +84,7 @@ def receiveMessage(conn):
         retmsg = conn.recv(msg_length).decode(FORMAT)
     return retmsg
 
-def sendModelMessage(msg, conn):
+def sendModelMessage(msg, msgData, conn):
     if msg == "model":
         # the name of file we want to send, make sure it exists
         filename = "testmodel.pth"
@@ -97,18 +107,22 @@ def sendModelMessage(msg, conn):
                 conn.sendall(bytes_read)
                 # update the progress bar
                 progress.update(len(bytes_read))
-                print(bytes_read)
+                #print(bytes_read)
         conn.shutdown(socket.SHUT_WR)
         #close the socket
         #conn.close()
 
     elif msg == "weights":
-        message = json.dumps(msg) #.encode(FORMAT)
+        #message = (msgData).encode(FORMAT)
+        #message = json.dumps(msgData)
+        message = pickle.dumps(msgData)
+        #print(message)
         msg_length = len(message)
+        #print(msg_length)
         send_length = str(msg_length).encode(FORMAT)
         send_length += b' '*(HEADER-len(send_length))
         conn.send(send_length)
-        conn.send(message)
+        conn.sendall(message)
 
     elif msg == "parameters":
         message = json.dumps(msg) #.encode(FORMAT)
@@ -151,10 +165,20 @@ def receiveModelMessage(msg, conn):
                 #print(bytes_read)
                 f.write(bytes_read)
                 # update the progress bar
-                print(bytes_read)
                 progress.update(len(bytes_read))
 
-    elif msg == "local_weights":
+    elif msg == "weights":
+        msg_length = conn.recv(HEADER).decode(FORMAT)
+        if msg_length:
+            msg_length = int(msg_length)
+            mssg = recvall(msg_length, conn)#.decode(FORMAT)
+            #print(mssg)
+            #print(msg_length)
+            #print(len(mssg))
+            msg = pickle.loads(mssg)
+        return msg
+
+    elif msg == "parameters":
         msg_length = conn.recv(HEADER).decode(FORMAT)
         if msg_length:
             msg_length = int(msg_length)
@@ -162,15 +186,7 @@ def receiveModelMessage(msg, conn):
             msg = json.loads(msg)
         return msg
 
-    elif msg == "local_parameters":
-        msg_length = conn.recv(HEADER).decode(FORMAT)
-        if msg_length:
-            msg_length = int(msg_length)
-            msg = conn.recv(msg_length)#.decode(FORMAT)
-            msg = json.loads(msg)
-        return msg
-
-    elif msg == "local_configurations":
+    elif msg == "configurations":
         msg_length = conn.recv(HEADER).decode(FORMAT)
         if msg_length:
             msg_length = int(msg_length)
@@ -184,47 +200,59 @@ def handle_communication(conn, addr):
     if mssg == CONNECT_MESSAGE:
         sendMessage("Welcome! You are connected with the sever...", conn)
         print("Starting FL protocol at client with client", str(addr))
-    
+
+        sendMessage(str(GlobalEpochs), conn)
+        sendMessage(str(LocalEpochs), conn)
+
         message = receiveMessage(conn)
         print(message)
-        while message != DISCONNECT_MESSAGE:
+        #Repeat = True
+        #while Repeat:  
+        if message != DISCONNECT_MESSAGE:
             modelCP = torch.load(FILE)
-                
             if message == MODEL_MESSAGE:
-                print("Server is sending the current global model")
-                sendModelMessage(modelCP, conn)
+                #print("Server is sending the current global model")
+                sendModelMessage(message, modelCP, conn)
                 print("Model Checkpoint Succeccsfully transferred")
-                Local_Weights = receiveModelMessage(MODEL_MESSAGE, conn)
-                GlobalWeights = GlobalWeights.add(Local_Weights)
-                
-            elif message == WEIGHTS_MESSAGE:
-                print("Server is sending the current global model checkpoint")
-                sendModelMessage(modelCP['model_state'], conn)
-                print("Model Weights Succeccsfully transferred")
-                Local_Weights = receiveModelMessage(WEIGHTS_MESSAGE, conn)
-                GlobalWeights = GlobalWeights.add(Local_Weights)
-                
-            elif message == PARAMETERS_MESSAGE:
-                print("Server is sending the current global model checkpoint")
-                sendModelMessage(modelCP['optim_state'], conn)
-                Local_Parameters = receiveModelMessage(PARAMETERS_MESSAGE, conn)
-                GlobalParameters = GlobalParameters.add(Local_Parameters)
-                print("Model Parameters Succeccsfully transferred")
-                
-            elif message == CONFIGURATION_MESSAGE:
-                print("Server is sending the current global model checkpoint")
-                sendModelMessage(modelCP['epoch'], conn)
-                print("Model Epoch Succeccsfully transferred")
 
+            elif message == WEIGHTS_MESSAGE:
+                #print("Server is sending the current global model weights")
+                sendModelMessage(message, modelCP['model_state'], conn)
+                print("Model Weights Succeccsfully transferred")
+                #Repeat = True
+            #else:
+                #Repeat = False
+            #    message = receiveMessage(conn)
+
+
+            # elif message == PARAMETERS_MESSAGE:
+            #     print("Server is sending the current global model checkpoint")
+            #   #  sendModelMessage(modelCP['optim_state'], conn)
+            #   #  Local_Parameters = receiveModelMessage(PARAMETERS_MESSAGE, conn)
+            #   #  GlobalParameters = GlobalParameters.add(Local_Parameters)
+            #   #  print("Model Parameters Succeccsfully transferred")
+                
+            # elif message == CONFIGURATION_MESSAGE:
+            #     print("Server is sending the current global model checkpoint")
+            #    # sendModelMessage(modelCP['epoch'], conn)
+            #   #  print("Model Epoch Succeccsfully transferred")
+
+        
 
 
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
+    
     glob_epoch = 0
+
     while glob_epoch < GlobalEpochs:
-        print(glob_epoch)
+        if(glob_epoch == 0):
+            print("We are going to begin training for " + str(GlobalEpochs) + " rounds")
+        else:
+            print("This is round " + str(glob_epoch) + " of total " + str(GlobalEpochs) + " rounds")
+        glob_epoch += 1
     
-    
+    handle_communication(conn, addr)
     
     # connected = True
     # while connected:

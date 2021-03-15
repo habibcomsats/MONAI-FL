@@ -7,9 +7,11 @@ sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
 #sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL')
 
 import socket
+import torch
 import os
 import tqdm
 import time
+import pickle
 import json
 
 from clientfilehandler import modelBootstrap
@@ -61,8 +63,8 @@ def receiveMessage():
         msg = client.recv(msg_length).decode(FORMAT)
     return msg
 
-def sendModelMessage(msg):
-    if msg == "local_model":
+def sendModelMessage(msg, msgData):
+    if msg == "model":
         # the name of file we want to send, make sure it exists
         filename = "testmodel.pth"
         # get the file size
@@ -84,38 +86,52 @@ def sendModelMessage(msg):
                 client.sendall(bytes_read)
                 # update the progress bar
                 progress.update(len(bytes_read))
-                print(bytes_read)
+                #print(bytes_read)
         client.shutdown(socket.SHUT_WR)
         #close the socket
         #conn.close()
 
-    elif msg == "local_weights":
-        message = json.dumps(msg) #.encode(FORMAT)
+    elif msg == "weights":
+        #message = (msgData).encode(FORMAT)
+        #message = json.dumps(msgData)
+        message = pickle.dumps(msgData)
+        #print(message)
         msg_length = len(message)
+        #print(msg_length)
         send_length = str(msg_length).encode(FORMAT)
         send_length += b' '*(HEADER-len(send_length))
         client.send(send_length)
-        client.send(message)
+        client.sendall(message)
 
-    elif msg == "local_parameters":
-        message = json.dumps(msg) #.encode(FORMAT)
-        msg_length = len(message)
-        send_length = str(msg_length).encode(FORMAT)
-        send_length += b' '*(HEADER-len(send_length))
-        client.send(send_length)
-        client.send(message)
+    # elif msg == "parameters":
+    #     message = json.dumps(msg) #.encode(FORMAT)
+    #     msg_length = len(message)
+    #     send_length = str(msg_length).encode(FORMAT)
+    #     send_length += b' '*(HEADER-len(send_length))
+    #     client.send(send_length)
+    #     client.send(message)
 
-    elif msg == "local_configurations":
-        message = json.dumps(msg) #.encode(FORMAT)
-        msg_length = len(message)
-        send_length = str(msg_length).encode(FORMAT)
-        send_length += b' '*(HEADER-len(send_length))
-        client.send(send_length)
-        client.send(message)
-    return 
+    # elif msg == "configurations":
+    #     message = json.dumps(msg) #.encode(FORMAT)
+    #     msg_length = len(message)
+    #     send_length = str(msg_length).encode(FORMAT)
+    #     send_length += b' '*(HEADER-len(send_length))
+    #     client.send(send_length)
+    #     client.send(message)
+    # return 
+
+def recvall(n):
+    # Helper function to recv n bytes or return None if EOF is hit
+    data = bytearray()
+    while len(data) < n:
+        packet = client.recv(n - len(data))
+        if not packet:
+            return None
+        data.extend(packet)
+    return data
 
 def receiveModelMessage(msg):
-    if msg == "global_model":
+    if msg == "model":
         received = client.recv(BUFFER_SIZE).decode()
         filename, filesize = received.split(SEPARATOR)
         # remove absolute path if there is
@@ -139,52 +155,73 @@ def receiveModelMessage(msg):
                 #print(bytes_read)
                 f.write(bytes_read)
                 # update the progress bar
-                print(bytes_read)
+                #print(bytes_read)
                 progress.update(len(bytes_read))
 
-    elif msg == "global_weights":
+    elif msg == "weights":
         msg_length = client.recv(HEADER).decode(FORMAT)
         if msg_length:
             msg_length = int(msg_length)
-            msg = client.recv(msg_length)#.decode(FORMAT)
-            msg = json.loads(msg)
-        return msg
+            mssg = recvall(msg_length)#.decode(FORMAT)
+            #print(mssg)
+            #print(msg_length)
+            #print(len(mssg))
+            msssg = pickle.loads(mssg)
+        return msssg
 
-    elif msg == "global_parameters":
-        msg_length = client.recv(HEADER).decode(FORMAT)
-        if msg_length:
-            msg_length = int(msg_length)
-            msg = client.recv(msg_length)#.decode(FORMAT)
-            msg = json.loads(msg)
-        return msg
+    # elif msg == "parameters":
+    #     msg_length = client.recv(HEADER).decode(FORMAT)
+    #     if msg_length:
+    #         msg_length = int(msg_length)
+    #         msg = client.recvall(msg_length)#.decode(FORMAT)
+    #         msg = json.loads(msg)
+    #     return msg
 
-    elif msg == "global_configurations":
-        msg_length = client.recv(HEADER).decode(FORMAT)
-        if msg_length:
-            msg_length = int(msg_length)
-            msg = client.recv(msg_length)#.decode(FORMAT)
-            msg = json.loads(msg)
-        return msg
+    # elif msg == "configurations":
+    #     msg_length = client.recv(HEADER).decode(FORMAT)
+    #     if msg_length:
+    #         msg_length = int(msg_length)
+    #         msg = client.recv(msg_length)#.decode(FORMAT)
+    #         msg = json.loads(msg)
+    #     return msg
     
 def handle_server():
     sendMessage(CONNECT_MESSAGE)
     server_message  = receiveMessage()
     print(server_message)
-    
+
     print("Starting FL protocol at client")
+    
+    #sendMessage(GLOBAL_EPOCHS)
+    glob_epochs = receiveMessage()
+    print("Server will execute " + glob_epochs + " in total")
+    
+    sendMessage(LOCAL_EPOCHS)
+    loc_epochs = receiveMessage()
+    print("Client will execute " + loc_epochs + " in each local round")
+    
+
 
     model = modelBootstrap() 
-    modelCP = torch.load(FILE)
     if model:
-        print("i have model")
+
+        print("Acquiring latest model ")
+        send
         sendMessage(WEIGHTS_MESSAGE)
         Global_Weights = receiveModelMessage(WEIGHTS_MESSAGE)
-        Global_Params = receiveModelMessage(PARAMETERS_MESSAGE)
-        modelCP['model_state'] = Global_Weights
-        model.save(modelCP, FILE)
+        #print(Global_Weights)
+     #   Global_Params = receiveModelMessage(PARAMETERS_MESSAGE)
+     #   print(Global_Params)
+     #   modelCP = torch.load(FILE)
+     #   print(modelCP)
+     #   model.load_state_dict(Global_Weights)
+     #  optimizer.load_state_dict(Global_Params)
+        
+     #   model.save(modelCP, FILE)
+        #sendMessage(DISCONNECT_MESSAGE)
 
-    else:
-        sendMessage(GLOBAL_MODEL_MESSAGE)
+    #else:
+    #    sendMessage(GLOBAL_MODEL_MESSAGE)
         
 handle_server()
 
