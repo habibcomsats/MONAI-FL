@@ -1,10 +1,10 @@
 # This file will store all the communication related functions from the server end. This will be directly communicating with client
 import sys
 #path for linux distribution
-#sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
+sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
 
 #path for windows installation
-sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/')
+#sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/')
 
 import socket
 import threading
@@ -42,9 +42,9 @@ PARAMETERS_MESSAGE = "parameters"
 CONFIGURATION_MESSAGE = "configurations"
 
 #path for linux distribution
-#FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
+FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
 #path for windows installation
-FILE = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/save/models/server/testmodel.pth'
+#FILE = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/save/models/server/testmodel.pth'
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)

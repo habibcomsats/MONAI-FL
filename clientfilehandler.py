@@ -1,9 +1,9 @@
 # This file contains functions to save and load the model checkpoints in the local storage. It also interfaces with client_trainer and client_communicator
 import sys
 #path for linux distribution
-#sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
+sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
 #path for windows installation
-sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/')
+#sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/')
 import torch
 from utils.options import args_parser
 from models.Nets import MLP, CNNMnist, CNNCifar
@@ -38,9 +38,9 @@ def getModel(argsModel):
 def modelBootstrap():
   #colecting model from server storage and sending it to devices in the list.
   #path for linux distribution
-#  FILE = '/home/habib/myResearch/MONAI-FL/save/models/client/testmodel.pth'
+  FILE = '/home/habib/myResearch/MONAI-FL/save/models/client/testmodel.pth'
   #path for windows installation
-  FILE = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/save/models/server/testmodel.pth'
+#  FILE = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/save/models/server/testmodel.pth'
   
   model = getModel(args.model)
   try:

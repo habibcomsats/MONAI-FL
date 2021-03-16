@@ -2,9 +2,9 @@
 
 import sys
 #path for linux distribution
-#sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
+sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
 #path for windows installation
-sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/')
+#sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/')
 
 import socket
 import torch
@@ -13,10 +13,13 @@ import tqdm
 import time
 import pickle
 import json
+
 import subprocess
+import py_compile
+from subprocess import Popen
 
 from clientfilehandler import modelBootstrap
-
+#from clientmain import main
 
 HEADER  = 64
 PORT = 8000
@@ -40,9 +43,9 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
 
 #path for linux distribution
-#FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
+FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
 #path for windows installation
-FILE = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/save/models/server/testmodel.pth'
+#FILE = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/save/models/server/testmodel.pth'
 
 modelCheckPoint = {
     "epoch": 0,
@@ -167,8 +170,12 @@ def handle_server():
             print ("This is first round")
             receiveModel()
             print("Initial Global Model Transferred!")
+            p = Popen(["python","clientmain.py"])
+            p.wait()
+            #execfile('clientmain.py')
+            #main()
             #call(["Python", {client_trainer.py}])
-            subprocess.run('python monai-fl-example-client.py')
+            #subprocess.call('/home/habib/myResearch/MONAI-FL/monai-fl-example-client.py')
         else:
             print ("This is round: ", str(loc_epoch+1))
         
