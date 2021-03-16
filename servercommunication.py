@@ -68,6 +68,7 @@ def recvall(n, conn):
         if not packet:
             return None
         data.extend(packet)
+        #time.sleep(0.1)
     return data
 
 def sendMessage(msg, conn):
@@ -110,7 +111,7 @@ def sendModel(conn):
             progress.update(len(bytes_read))
             time.sleep(0.1)
             #print(bytes_read)
-    #conn.shutdown(socket.SHUT_WR)
+    conn.shutdown(socket.SHUT_WR)
     #close the socket
     #conn.close()
 
@@ -139,7 +140,7 @@ def receiveModel(conn):
         while True:
             # read 1024 bytes from the socket (receive)
             bytes_read = conn.recv(BUFFER_SIZE)
-            time.sleep(3)
+            time.sleep(0.1)
             if not bytes_read:    
                 print("No More Data :-)")
                 # file transmitting is done
@@ -151,6 +152,7 @@ def receiveModel(conn):
             progress.update(len(bytes_read))
 
 def receiveWeights(conn):
+    msg=''
     msg_length = conn.recv(HEADER).decode(FORMAT)
     print(msg_length)
     if msg_length:
@@ -167,9 +169,9 @@ def handle_communication(ep_round, conn, addr):
         print ("This is first round")
         sendModel(conn)
         print("Initial Global Model Transferred!")
-
-    elif ep_round != 0:
-            print ("This is round: ", str(ep_round+1))
+        Local_Weights = receiveWeights(conn)
+    else:
+        print ("This is round: ", str(ep_round+1))
 
             # if ep_round == 0:
         #     #modelCP = torch.load(FILE)

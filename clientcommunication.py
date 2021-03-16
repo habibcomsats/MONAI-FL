@@ -42,15 +42,21 @@ ADDR = (SERVER,PORT)
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
 
+
+savedir = 'client_model'
+checkpointdir = os.path.join('./checkpoints', savedir)
+FILE = os.path.join(checkpointdir, 'client_checkpoint.pth.tar')
+
 #path for linux distribution
-FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
+#FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
 #path for windows installation
 #FILE = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/save/models/server/testmodel.pth'
 
 modelCheckPoint = {
     "epoch": 0,
-    "model_state": {},  
-    "optim_state": {}
+    "state_dict": {},  
+    "optimizer": {},
+    "best_metric": 0
     }
 
 def recvall(n):
@@ -61,6 +67,7 @@ def recvall(n):
         if not packet:
             return None
         data.extend(packet)
+        #time.sleep(0.1)
     return data
 
 def sendMessage(msg):
@@ -81,7 +88,7 @@ def receiveMessage():
 
 def sendModel():
     # the name of file we want to send, make sure it exists
-    filename = "testmodel.pth"
+    filename = 'client_checkpoint.pth.tar'
     # get the file size
     filesize = os.path.getsize(FILE)
     # send the filename and filesize
@@ -115,8 +122,8 @@ def sendWeights(msgData):
     #print(msg_length)
     send_length = str(msg_length).encode(FORMAT)
     send_length += b' '*(HEADER-len(send_length))
-    conn.send(send_length)
-    conn.sendall(message)
+    client.send(send_length)
+    client.sendall(message)
 
 def receiveModel():
     received = client.recv(BUFFER_SIZE).decode()
@@ -170,19 +177,15 @@ def handle_server():
             print ("This is first round")
             receiveModel()
             print("Initial Global Model Transferred!")
-            p = Popen(["python","clientmain.py"])
-            p.wait()
-            #execfile('clientmain.py')
-            #main()
-            #call(["Python", {client_trainer.py}])
-            #subprocess.call('/home/habib/myResearch/MONAI-FL/monai-fl-example-client.py')
+            #p = Popen(["python","clientmain.py"])
+            #p.wait()
+            modelCP = torch.load(FILE)
+            print(modelCP['state_dict'])
+            sendWeights(modelCP['state_dict'])
+
         else:
-            print ("This is round: ", str(loc_epoch+1))
-        
-        
-        
+            print ("This is round: ", str(loc_epoch+1))       
         loc_epoch+=1
-    
     server_message  = receiveMessage()
     print(server_message)
     #model = modelBootstrap()

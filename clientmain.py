@@ -19,6 +19,8 @@ from monai.transforms import Compose, LoadImage, AddChannel, ScaleIntensity, ToT
 from monai.networks.nets import densenet121
 from monai.metrics import compute_roc_auc
 
+/home/habib/myResearch/MONAI-FL/clientmain.py
+
 np.random.seed(0)
 print_config()
 
@@ -162,7 +164,7 @@ model = densenet121(
 ).to(device)
 loss_function = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), 1e-5)
-epoch_num = 4
+epoch_num = 1 #4
 val_interval = 1
 
 """## Model training
