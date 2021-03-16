@@ -18,6 +18,8 @@ import subprocess
 import py_compile
 from subprocess import Popen
 
+import shutil
+
 from clientfilehandler import modelBootstrap
 #from clientmain import main
 
@@ -45,7 +47,7 @@ client.connect(ADDR)
 
 savedir = 'client_model'
 checkpointdir = os.path.join('./checkpoints', savedir)
-FILE = os.path.join(checkpointdir, 'client_checkpoint.pth.tar')
+FILE = os.path.join(checkpointdir, 'checkpoint.pth.tar')
 
 #path for linux distribution
 #FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
@@ -88,7 +90,7 @@ def receiveMessage():
 
 def sendModel():
     # the name of file we want to send, make sure it exists
-    filename = 'client_checkpoint.pth.tar'
+    filename = 'checkpoint.pth.tar'
     # get the file size
     filesize = os.path.getsize(FILE)
     # send the filename and filesize
@@ -140,7 +142,7 @@ def receiveModel():
         while True:
             # read 1024 bytes from the socket (receive)
             bytes_read = client.recv(BUFFER_SIZE)
-            time.sleep(0.1)
+            time.sleep(0.0001)
             if not bytes_read:    
                 print("No More Data :-)")
                 # file transmitting is done
@@ -151,6 +153,7 @@ def receiveModel():
             # update the progress bar
             #print(bytes_read)
             progress.update(len(bytes_read))
+    shutil.move('/'+filename, FILE)
 
 def receiveWeights():
     msg_length = client.recv(HEADER).decode(FORMAT)

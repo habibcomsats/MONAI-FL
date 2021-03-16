@@ -42,9 +42,12 @@ PARAMETERS_MESSAGE = "parameters"
 CONFIGURATION_MESSAGE = "configurations"
 
 #path for linux distribution
-FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
+#FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
 #path for windows installation
 #FILE = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/save/models/server/testmodel.pth'
+savedir = 'server_model'
+checkpointdir = os.path.join('./checkpoints', savedir)
+FILE = os.path.join(checkpointdir, 'checkpoint.pth.tar')
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
@@ -52,13 +55,14 @@ print("Server is binded")
 
 modelCheckPoint = {
     "epoch": 0,
-    "model_state": {},  
-    "optim_state": {}
+    "state_dict": {},  
+    "optimizer": {},
+    "best_metric": 0
     }
 
-GlobalWeights = torch.tensor([])
+GlobalWeights = torch.zeros([])
 GlobalEpochs = 3 #args_parser()
-Local_Weights = torch.tensor([])
+Local_Weights = torch.zeros([])
 
 def recvall(n, conn):
     # Helper function to recv n bytes or return None if EOF is hit
@@ -89,7 +93,7 @@ def receiveMessage(conn):
 
 def sendModel(conn):
     # the name of file we want to send, make sure it exists
-    filename = "testmodel.pth"
+    filename = "checkpoint.pth.tar"
     # get the file size
     filesize = os.path.getsize(FILE)
     # send the filename and filesize
@@ -109,7 +113,7 @@ def sendModel(conn):
             conn.sendall(bytes_read)
             # update the progress bar
             progress.update(len(bytes_read))
-            time.sleep(0.1)
+            time.sleep(0.0001)
             #print(bytes_read)
     conn.shutdown(socket.SHUT_WR)
     #close the socket
@@ -169,7 +173,7 @@ def handle_communication(ep_round, conn, addr):
         print ("This is first round")
         sendModel(conn)
         print("Initial Global Model Transferred!")
-        Local_Weights = receiveWeights(conn)
+        LocalWeights = receiveWeights(conn)
     else:
         print ("This is round: ", str(ep_round+1))
 
@@ -192,7 +196,7 @@ def handle_communication(ep_round, conn, addr):
         #     # sendMessage(CONNECT_MESSAGE, conn)
 
     #return Local_Weights
-    return torch.tensor(2)
+    return LocalWeights
 
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
@@ -210,6 +214,7 @@ def handle_client(conn, addr):
         while glob_epoch < GlobalEpochs:
             print("Global Epoch: "+ str(glob_epoch+1) + "/" + str(GlobalEpochs))
             Local_Weights = handle_communication(glob_epoch, conn, addr)
+            print(Local_Weights)
             #GlobalWeights = GlobalWeights.add(Local_Weights)
             glob_epoch += 1
         
