@@ -86,116 +86,116 @@ def receiveMessage(conn):
         retmsg = conn.recv(msg_length).decode(FORMAT)
     return retmsg
 
-def sendModelMessage(msg, msgData, conn):
-    if msg == "model":
-        # the name of file we want to send, make sure it exists
-        filename = "testmodel.pth"
-        # get the file size
-        filesize = os.path.getsize(FILE)
-        # send the filename and filesize
-        conn.send(f"{filename}{SEPARATOR}{filesize}".encode())
+def sendModel(conn):
+    # the name of file we want to send, make sure it exists
+    filename = "testmodel.pth"
+    # get the file size
+    filesize = os.path.getsize(FILE)
+    # send the filename and filesize
+    conn.send(f"{filename}{SEPARATOR}{filesize}".encode())
 
-        # start sending the file
-        progress = tqdm.tqdm(range(filesize), f"Sending {filename}", unit="B", unit_scale=True, unit_divisor=1024)
-        with open(FILE, "rb") as f:
-            while True:
-                # read the bytes from the file
-                bytes_read = f.read(BUFFER_SIZE)
-                if not bytes_read:
-                    # file transmitting is done
-                    break
-                # we use sendall to assure transimission in 
-                # busy networks
-                conn.sendall(bytes_read)
-                # update the progress bar
-                progress.update(len(bytes_read))
-                #print(bytes_read)
-        conn.shutdown(socket.SHUT_WR)
-        #close the socket
-        #conn.close()
+    # start sending the file
+    progress = tqdm.tqdm(range(filesize), f"Sending {filename}", unit="B", unit_scale=True, unit_divisor=1024)
+    with open(FILE, "rb") as f:
+        while True:
+            # read the bytes from the file
+            bytes_read = f.read(BUFFER_SIZE)
+            if not bytes_read:
+                # file transmitting is done
+                break
+            # we use sendall to assure transimission in 
+            # busy networks
+            conn.sendall(bytes_read)
+            # update the progress bar
+            progress.update(len(bytes_read))
+            #print(bytes_read)
+    conn.shutdown(socket.SHUT_WR)
+    #close the socket
+    #conn.close()
 
-    elif msg == "weights":
-        message = pickle.dumps(msgData)
-        print(message)
-        msg_length = len(message)
+def sendWeights(msgData, conn):
+    message = pickle.dumps(msgData)
+    print(message)
+    msg_length = len(message)
+    print(msg_length)
+    send_length = str(msg_length).encode(FORMAT)
+    send_length += b' '*(HEADER-len(send_length))
+    conn.send(send_length)
+    conn.sendall(message)
+
+def receiveModel(conn):
+    received = conn.recv(BUFFER_SIZE).decode()
+    filename, filesize = received.split(SEPARATOR)
+    # remove absolute path if there is
+    FILE = os.path.basename(filename)
+    # convert to integer
+    filesize = int(filesize)
+
+    # start receiving the file from the socket
+    # and writing to the file stream
+    progress = tqdm.tqdm(range(filesize), f"Receiving {filename}", unit="B", unit_scale=True, unit_divisor=1024)
+    with open(FILE, "wb") as f:
+        while True:
+            # read 1024 bytes from the socket (receive)
+            bytes_read = conn.recv(BUFFER_SIZE)
+            time.sleep(3)
+            if not bytes_read:    
+                print("No More Data :-)")
+                # file transmitting is done
+                break
+            # write to the file the bytes we just received
+            #print(bytes_read)
+            f.write(bytes_read)
+            # update the progress bar
+            progress.update(len(bytes_read))
+
+def receiveWeights(conn):
+    msg_length = conn.recv(HEADER).decode(FORMAT)
+    print(msg_length)
+    if msg_length:
+        msg_length = int(msg_length)
+        msg = recvall(msg_length, conn)#.decode(FORMAT)
+        print(msg)
         print(msg_length)
-        send_length = str(msg_length).encode(FORMAT)
-        send_length += b' '*(HEADER-len(send_length))
-        conn.send(send_length)
-        conn.sendall(message)
+        print(len(msg))
+        #msg = pickle.loads(mssg)
+    return msg
 
-def receiveModelMessage(msg, conn):
-    if msg == "model":
-        received = conn.recv(BUFFER_SIZE).decode()
-        filename, filesize = received.split(SEPARATOR)
-        # remove absolute path if there is
-        FILE = os.path.basename(filename)
-        # convert to integer
-        filesize = int(filesize)
-
-        # start receiving the file from the socket
-        # and writing to the file stream
-        progress = tqdm.tqdm(range(filesize), f"Receiving {filename}", unit="B", unit_scale=True, unit_divisor=1024)
-        with open(FILE, "wb") as f:
-            while True:
-                # read 1024 bytes from the socket (receive)
-                bytes_read = conn.recv(BUFFER_SIZE)
-                time.sleep(0.00000001)
-                if not bytes_read:    
-                    print("No More Data :-)")
-                    # file transmitting is done
-                    break
-                # write to the file the bytes we just received
-                #print(bytes_read)
-                f.write(bytes_read)
-                # update the progress bar
-                progress.update(len(bytes_read))
-
-    elif msg == "weights":
-        msg_length = conn.recv(HEADER).decode(FORMAT)
-        print(msg_length)
-        if msg_length:
-            msg_length = int(msg_length)
-            mssg = recvall(msg_length, conn)#.decode(FORMAT)
-            print(mssg)
-            print(msg_length)
-            print(len(mssg))
-            #msg = pickle.loads(mssg)
-        return msg
-
-def handle_communication(ep_round, conn, addr):
-    mssg = receiveMessage(conn)
-    print(mssg)
+def handle_communication(ep_round, mssg, conn, addr):
     if mssg == CONNECT_MESSAGE:
-        sendMessage("Welcome! You are connected with the sever...", conn)
+        sendMessage("Welcome! You are connected with the sever...", conn) # 2
         print("Starting FL protocol at client with client", str(addr))
         if ep_round == 0:
-            modelCP = torch.load(FILE)
-            print(modelCP)
-            sendMessage(str(ep_round), conn)
-            sendModelMessage(MODEL_MESSAGE, modelCP, conn)
+            #modelCP = torch.load(FILE)
+            #print(modelCP)
+            sendMessage(str(ep_round), conn) # 3
+            sendModel(conn) # 4
             print("Model Checkpoint Succeccsfully transferred at Round_ : ", ep_round)
-            Local_Weights = receiveModelMessage(WEIGHTS_MESSAGE, conn)
+            #Local_Weights = receiveWeights(conn)
         else:
+            print("Im not in first epoch")
             modelCP = torch.load(FILE)
             print(modelCP)
             #print("Server is sending the current global model weights")
-            sendMessage(str(ep_round), conn)
-            sendModelMessage(WEIGHTS_MESSAGE, modelCP['model_state'], conn)
+            #sendMessage(str(ep_round), conn)
+            sendModel(modelCP['model_state'], conn)
             print("Model Weights Succeccsfully transferred")
-            Local_Weights = receiveModelMessage(WEIGHTS_MESSAGE, conn)
-
-    return Local_Weights
+            Local_Weights = receiveWeights(conn)
+    #return Local_Weights
+    return torch.tensor(2)
 
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
     glob_epoch = 0
+    mssg = receiveMessage(conn) # 1
+    print(mssg)
     while glob_epoch < GlobalEpochs:
-        Local_Weights = handle_communication(glob_epoch, conn, addr)
-        # GlobalWeights = GlobalWeights.add(Local_Weights)
+        Local_Weights = handle_communication(glob_epoch, mssg, conn, addr)
+        #GlobalWeights = GlobalWeights.add(Local_Weights)
         print(glob_epoch)
         glob_epoch += 1
     #AvgWeights = FedAvg(GlobalWeights)
+    
     sendMessage(DISCONNECT_MESSAGE, conn)
     conn.close()
 
