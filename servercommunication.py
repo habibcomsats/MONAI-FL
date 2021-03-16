@@ -108,8 +108,9 @@ def sendModel(conn):
             conn.sendall(bytes_read)
             # update the progress bar
             progress.update(len(bytes_read))
+            time.sleep(0.1)
             #print(bytes_read)
-    conn.shutdown(socket.SHUT_WR)
+    #conn.shutdown(socket.SHUT_WR)
     #close the socket
     #conn.close()
 
@@ -161,40 +162,56 @@ def receiveWeights(conn):
         #msg = pickle.loads(mssg)
     return msg
 
-def handle_communication(ep_round, mssg, conn, addr):
-    if mssg == CONNECT_MESSAGE:
-        sendMessage("Welcome! You are connected with the sever...", conn) # 2
-        print("Starting FL protocol at client with client", str(addr))
-        if ep_round == 0:
-            #modelCP = torch.load(FILE)
-            #print(modelCP)
-            sendMessage(str(ep_round), conn) # 3
-            sendModel(conn) # 4
-            print("Model Checkpoint Succeccsfully transferred at Round_ : ", ep_round)
-            #Local_Weights = receiveWeights(conn)
-        else:
-            print("Im not in first epoch")
-            modelCP = torch.load(FILE)
-            print(modelCP)
-            #print("Server is sending the current global model weights")
-            #sendMessage(str(ep_round), conn)
-            sendModel(modelCP['model_state'], conn)
-            print("Model Weights Succeccsfully transferred")
-            Local_Weights = receiveWeights(conn)
+def handle_communication(ep_round, conn, addr):
+    if ep_round == 0:
+        print ("This is first round")
+        sendModel(conn)
+        print("Initial Global Model Transferred!")
+
+    elif ep_round != 0:
+            print ("This is round: ", str(ep_round+1))
+
+            # if ep_round == 0:
+        #     #modelCP = torch.load(FILE)
+        #     #print(modelCP)
+        #     sendMessage(str(ep_round), conn) # 3
+        #     sendModel(conn) # 4
+        #     print("Model Checkpoint Succeccsfully transferred at Round_ : ", ep_round)
+        #     #Local_Weights = receiveWeights(conn)
+        # elif ep_round != 0:
+        #     print("Im not in first epoch")
+        #     # modelCP = torch.load(FILE)
+        #     # print(modelCP)
+        #     # #print("Server is sending the current global model weights")
+        #     # #sendMessage(str(ep_round), conn)
+        #     # sendModel(modelCP['model_state'], conn)
+        #     # print("Model Weights Succeccsfully transferred")
+        #     # Local_Weights = receiveWeights(conn)
+        #     # sendMessage(CONNECT_MESSAGE, conn)
+
     #return Local_Weights
     return torch.tensor(2)
 
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
     glob_epoch = 0
+
     mssg = receiveMessage(conn) # 1
     print(mssg)
-    while glob_epoch < GlobalEpochs:
-        Local_Weights = handle_communication(glob_epoch, mssg, conn, addr)
-        #GlobalWeights = GlobalWeights.add(Local_Weights)
-        print(glob_epoch)
-        glob_epoch += 1
-    #AvgWeights = FedAvg(GlobalWeights)
+
+    if mssg == CONNECT_MESSAGE:
+        sendMessage("Welcome! You are connected with the sever...", conn) # 2
+        print("Starting FL protocol at client with client", str(addr))
+
+        sendMessage(str(GlobalEpochs), conn)
+
+        while glob_epoch < GlobalEpochs:
+            print("Global Epoch: "+ str(glob_epoch+1) + "/" + str(GlobalEpochs))
+            Local_Weights = handle_communication(glob_epoch, conn, addr)
+            #GlobalWeights = GlobalWeights.add(Local_Weights)
+            glob_epoch += 1
+        
+        #AvgWeights = FedAvg(GlobalWeights)
     
     sendMessage(DISCONNECT_MESSAGE, conn)
     conn.close()

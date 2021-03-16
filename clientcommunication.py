@@ -13,8 +13,10 @@ import tqdm
 import time
 import pickle
 import json
+import subprocess
 
 from clientfilehandler import modelBootstrap
+
 
 HEADER  = 64
 PORT = 8000
@@ -67,6 +69,7 @@ def sendMessage(msg):
     client.send(message)
 
 def receiveMessage():
+    msg =''
     msg_length = client.recv(HEADER).decode(FORMAT)
     if msg_length:
         msg_length = int(msg_length)
@@ -112,7 +115,7 @@ def sendWeights(msgData):
     conn.send(send_length)
     conn.sendall(message)
 
-def receiveModel(msg):
+def receiveModel():
     received = client.recv(BUFFER_SIZE).decode()
     filename, filesize = received.split(SEPARATOR)
     # remove absolute path if there is
@@ -127,7 +130,7 @@ def receiveModel(msg):
         while True:
             # read 1024 bytes from the socket (receive)
             bytes_read = client.recv(BUFFER_SIZE)
-            time.sleep(3)
+            time.sleep(0.1)
             if not bytes_read:    
                 print("No More Data :-)")
                 # file transmitting is done
@@ -156,41 +159,57 @@ def handle_server():
     server_message  = receiveMessage() # 2
     print(server_message)
     print("Starting FL protocol at client")
-       
-    connected = True
-    while connected:
-        glob_epoch = receiveMessage() # 3
-        model = modelBootstrap()
-        print("Global Epoch: " + glob_epoch)
-        if glob_epoch == 0:
-            print("We are going to begin training for " + str(GlobalEpochs) + " rounds")
-            print("Acquiring latest model")
-            receiveModel() # 4
-            os.system('python client_trainer.py')
-            #ExecuteLocalPipeline(local_epoch) # it will execute the DL algorithms
-            #modelCP = torch.load(FILE)
-            #print(modelCP['model_state'])
-            #sendWeights(modelCP['model_state'])
-
+    glob_epoch = int (receiveMessage()) # 3
+    loc_epoch = 0
+    while loc_epoch < glob_epoch:
+        print("Local Epoch: "+ str(loc_epoch+1) + "/" + str(glob_epoch))
+        if loc_epoch == 0:
+            print ("This is first round")
+            receiveModel()
+            print("Initial Global Model Transferred!")
+            #call(["Python", {client_trainer.py}])
+            subprocess.run('python monai-fl-example-client.py')
         else:
-            print("Global Epoch: ", glob_epoch)
-            #sendMessage(WEIGHTS_MESSAGE)
-            #print(receiveMessage())
-            Global_Weights = receiveWeights()
-            modelCP = torch.load(FILE)
-            optimizer = torch.optim.SGD(model.parameters(), lr=0)
-            model.load_state_dict(Global_Weights)
-            optimizer.load_state_dict(modelCP['optim_state'])
-            model.eval()
-            #modelCP['model_state'] = Global_Weights
-            model.save(modelCP, FILE)
-            #ExecuteLocalPipeline(local_epoch)
-            modelCP = torch.load(FILE)
-            sendWeights(modelCP['model_state'])
+            print ("This is round: ", str(loc_epoch+1))
         
-        statusMessage = receiveMessage()
-        if statusMessage == DISCONNECT_MESSAGE:
-            connected = False
+        
+        
+        loc_epoch+=1
+    
+    server_message  = receiveMessage()
+    print(server_message)
+    #model = modelBootstrap()
+    # print("Global Epoch: " + glob_epoch)
+    # if glob_epoch == 0:
+    #     print("We are going to begin training for " + str(GlobalEpochs) + " rounds")
+    #     print("Acquiring latest model")
+    #     receiveModel() # 4
+    #     os.system('python client_trainer.py')
+        #ExecuteLocalPipeline(local_epoch) # it will execute the DL algorithms
+        #modelCP = torch.load(FILE)
+        #print(modelCP['model_state'])
+        #sendWeights(modelCP['model_state'])
+
+ #   else:
+        #connected = True
+        #while connected:
+        #    print("Global Epoch: ", glob_epoch)
+            # #sendMessage(WEIGHTS_MESSAGE)
+            # #print(receiveMessage())
+            # Global_Weights = receiveWeights()
+            # modelCP = torch.load(FILE)
+            # optimizer = torch.optim.SGD(model.parameters(), lr=0)
+            # model.load_state_dict(Global_Weights)
+            # optimizer.load_state_dict(modelCP['optim_state'])
+            # model.eval()
+            # #modelCP['model_state'] = Global_Weights
+            # model.save(modelCP, FILE)
+            # #ExecuteLocalPipeline(local_epoch)
+            # modelCP = torch.load(FILE)
+            # sendWeights(modelCP['model_state'])
+            # statusMessage = receiveMessage()
+            # if statusMessage == DISCONNECT_MESSAGE:
+            #connected = False
         
         
 handle_server()
