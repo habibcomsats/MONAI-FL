@@ -11,8 +11,7 @@ sys.path.insert(1, ProjecttDir)
 #sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/')
 import torch
 from utils.options import args_parser
-from models.Nets import MLP, CNNMnist, CNNCifar
-from monai.networks.nets import densenet121
+from networks.nets import densenet121
 
 
 savedir = 'client_model'
@@ -30,8 +29,8 @@ modelCheckPoint = {
     }
 
 def getModel(argsModel):
-  if argsModel == 'desnsenet':
-    net_glob = densenet121(spatial_dims=2, in_channels=1, out_channels=num_class)
+  if argsModel == 'densenet':
+    net_glob = densenet121(spatial_dims=2, in_channels=1, out_channels=3)
   else:
     exit('Error: unrecognized model')
   #print(net_glob)
@@ -49,21 +48,21 @@ def modelBootstrap():
   
   model = getModel(args.model)
   try:
-    modelCheckPoint = torch.load(fullpath)
+    modelCheckPoint = torch.load(FILE)
   except FileNotFoundError:
     print("client has no model to bootstrap with!")
     optimizer = torch.optim.SGD(model.parameters(), lr=0)
     modelCheckPoint = {
-                    'epoch': best_metric_epoch,
+                    'epoch': 0,
                     'state_dict': model.state_dict(),
                     'optimizer': optimizer.state_dict(),
-                    'best_metric': best_metric
+                    'best_metric': 0
                     }
 
-    torch.save(modelCheckPoint, fullpath)
+    torch.save(modelCheckPoint, FILE)
   #model.eval() to be executed when need to update the model at server or client
   if model:
-    modelCheckPoint = torch.load(fullpath)
+    modelCheckPoint = torch.load(FILE)
     optimizer = torch.optim.SGD(model.parameters(), lr=0)
     model.load_state_dict(modelCheckPoint['state_dict'])
     optimizer.load_state_dict(modelCheckPoint['optimizer'])
@@ -71,7 +70,7 @@ def modelBootstrap():
     # - or -
     # model.train()
     #print(model)
-    torch.save(modelCheckPoint, fullpath)
+    torch.save(modelCheckPoint, FILE)
     print("sending model")
     model = False
     return modelCheckPoint

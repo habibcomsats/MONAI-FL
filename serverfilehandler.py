@@ -12,7 +12,7 @@ sys.path.insert(1, ProjecttDir)
 #sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL')
 import torch
 from utils.options import args_parser
-from models.Nets import MLP, CNNMnist, CNNCifar
+from networks.nets import densenet121
 
 # parse args
 args = args_parser()
@@ -29,25 +29,15 @@ modelCheckPoint = {
     'best_metric': 0
     }
 def getModel(argsModel):
-  # build model
-  if argsModel == 'cnn' and args.dataset == 'cifar':
-    net_glob = CNNCifar(args=args).to(args.device)
-  elif argsModel == 'cnn' and args.dataset == 'mnist':
-    net_glob = CNNMnist(args=args).to(args.device)
-  elif argsModel == 'mlp':
-    print(img_size)
-    len_in = 1
-    for x in img_size:
-      len_in *= x
-    net_glob = MLP(dim_in=len_in, dim_hidden=200, dim_out=args.num_classes).to(args.device)
+  if argsModel == 'densenet':
+    net_glob = densenet121(spatial_dims=2, in_channels=1, out_channels=3)
+    print(net_glob)
   else:
     exit('Error: unrecognized model')
   #print(net_glob)
   #net_glob.train()
-
   # copy weights
-  w_glob = net_glob.state_dict()
-
+  #w_glob = net_glob.state_dict()
   return net_glob
 
 def modelBootstrap():
@@ -56,19 +46,20 @@ def modelBootstrap():
   #FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
   #path for windows installation
 #  FILE = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/save/models/server/testmodel.pth'
-
-  model = getModel(args.model)
   
+  print(args.model)
+  model = getModel(args.model)
+  print(args.model)
   try:
     modelCheckPoint = torch.load(FILE)
   except FileNotFoundError:
     print("Server has no model to boostrap")
     optimizer = torch.optim.SGD(model.parameters(), lr=0)
     modelCheckPoint = {
-      'epoch': best_metric_epoch,
+      'epoch': 0,
       'state_dict': model.state_dict(),
       'optimizer': optimizer.state_dict(),
-      'best_metric': best_metric
+      'best_metric': 0
     }
     torch.save(modelCheckPoint, FILE)
     #print(modelCheckPoint)
