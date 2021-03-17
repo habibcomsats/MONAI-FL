@@ -1,4 +1,5 @@
 # This file will store all the communication related functions from the server end. This will be directly communicating with client
+
 import sys
 import os
 ProjecttDir = os.getcwd()
@@ -28,6 +29,7 @@ import shutil
 from serverfilehandler import modelBootstrap
 from communication.network import getNetworkConfigurations
 from utils.options import args_parser
+#from networks.nets.densenet import *
 
 HEADER = 64
 #PORT = 8500
@@ -131,7 +133,7 @@ def sendModel(conn):
 
 def sendWeights(msgData, conn):
     message = pickle.dumps(msgData)
-    print(message)
+    #print(message)
     msg_length = len(message)
     print(msg_length)
     send_length = str(msg_length).encode(FORMAT)
@@ -172,9 +174,9 @@ def receiveWeights(conn):
     if msg_length:
         msg_length = int(msg_length)
         msg = recvall(msg_length, conn)#.decode(FORMAT)
-        print(msg)
-        print(msg_length)
-        print(len(msg))
+       # print(msg)
+       # print(msg_length)
+       # print(len(msg))
         #msg = pickle.loads(mssg)
     return msg
 
@@ -188,7 +190,7 @@ def handle_communication(ep_round, conn, addr):
             # send weights
             print("Sending weights!")
             modelCP = torch.load(FILE)
-            print(modelCP['state_dict'])
+            #print(modelCP['state_dict'])
             sendWeights(modelCP['state_dict'], conn)
             LocalWeights = receiveWeights(conn)
         else:
@@ -236,7 +238,7 @@ def handle_client(conn, addr):
         while glob_epoch < GlobalEpochs:
             print("Global Epoch: "+ str(glob_epoch+1) + "/" + str(GlobalEpochs))
             Local_Weights = handle_communication(glob_epoch, conn, addr)
-            print(Local_Weights)
+            #print(Local_Weights)
             #GlobalWeights = GlobalWeights.add(Local_Weights)
             glob_epoch += 1
         

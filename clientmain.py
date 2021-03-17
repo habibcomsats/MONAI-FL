@@ -31,10 +31,10 @@ There are 6 folders in the dataset: Hand, AbdomenCT, CXR, ChestCT, BreastMRI, He
 which should be used as the labels to train our classification model."""
 
 #windows version
-#data_dir = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/'
+data_dir = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/'
 
 #Linux version
-data_dir = '/home/habib/myResearch/data/MedNIST/'
+#data_dir = '/home/habib/myResearch/data/MedNIST/'
 debug = 1  # 0: normal mode 1: debug mode
 
 savedir = 'client_model'
@@ -60,7 +60,7 @@ for i, class_name in enumerate(class_names):
     image_file_list.extend(image_files[i])
     image_label_list.extend([i] * len(image_files[i]))
 num_total = len(image_label_list)
-image_width, image_height = Image.open(image_file_list[0]).size
+image_width, image_height = Image.open(image_file_list[0])#.size
 
 print('Total image count:', num_total)
 print("Image dimensions:", image_width, "x", image_height)
