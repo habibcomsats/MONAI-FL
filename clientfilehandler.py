@@ -11,7 +11,7 @@ sys.path.insert(1, ProjecttDir)
 #sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/')
 import torch
 from utils.options import args_parser
-from networks.nets import densenet121
+from monai.networks.nets import densenet121
 
 
 savedir = 'client_model'

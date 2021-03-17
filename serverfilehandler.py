@@ -12,7 +12,7 @@ sys.path.insert(1, ProjecttDir)
 #sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL')
 import torch
 from utils.options import args_parser
-from networks.nets import densenet121
+from monai.networks.nets.densenet import densenet121
 
 # parse args
 args = args_parser()
@@ -30,7 +30,7 @@ modelCheckPoint = {
     }
 def getModel(argsModel):
   if argsModel == 'densenet':
-    net_glob = densenet121(spatial_dims=2, in_channels=1, out_channels=3)
+    net_glob = densenet121(spatial_dims=2, in_channels=1, out_channels=6)
     print(net_glob)
   else:
     exit('Error: unrecognized model')
