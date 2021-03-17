@@ -1,20 +1,32 @@
 # This file contains functions to save and load the model checkpoints in the local storage. It also interfaces with client_trainer and client_communicator
 
 import sys
+import os
+
+ProjecttDir = os.getcwd()
+sys.path.insert(1, ProjecttDir)
+
 #path for linux distribution
-sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
+#sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
 #path for windows installation
 #sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL')
 import torch
 from utils.options import args_parser
 from models.Nets import MLP, CNNMnist, CNNCifar
+
 # parse args
 args = args_parser()
 args.device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() and args.gpu != -1 else 'cpu')
+
+savedir = 'server_model'
+checkpointdir = os.path.join('./checkpoints', savedir)
+FILE = os.path.join(checkpointdir, 'checkpoint.pth.tar')
+
 modelCheckPoint = {
-    "epoch": 0,
-    "model_state": {},  
-    "optim_state": {}
+    'epoch': 0,
+    'state_dict': {},
+    'optimizer': {},
+    'best_metric': 0
     }
 def getModel(argsModel):
   # build model
@@ -41,7 +53,7 @@ def getModel(argsModel):
 def modelBootstrap():
   #colecting model from server storage and sending it to devices in the list.
   #path for linux distribution
-  FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
+  #FILE = '/home/habib/myResearch/MONAI-FL/save/models/server/testmodel.pth'
   #path for windows installation
 #  FILE = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/save/models/server/testmodel.pth'
 
@@ -53,9 +65,10 @@ def modelBootstrap():
     print("Server has no model to boostrap")
     optimizer = torch.optim.SGD(model.parameters(), lr=0)
     modelCheckPoint = {
-    "epoch": 90,
-    "model_state": model.state_dict(),  
-    "optim_state": optimizer.state_dict()
+      'epoch': best_metric_epoch,
+      'state_dict': model.state_dict(),
+      'optimizer': optimizer.state_dict(),
+      'best_metric': best_metric
     }
     torch.save(modelCheckPoint, FILE)
     #print(modelCheckPoint)
@@ -67,8 +80,8 @@ def modelBootstrap():
     modelCheckPoint = torch.load(FILE)
     #modelCheckPoint = receivemodel()
     optimizer = torch.optim.SGD(model.parameters(), lr=0)
-    model.load_state_dict(modelCheckPoint['model_state'])
-    optimizer.load_state_dict(modelCheckPoint['optim_state'])
+    model.load_state_dict(modelCheckPoint['state_dict'])
+    optimizer.load_state_dict(modelCheckPoint['optimizer'])
     model.eval()
     # - or -
     # model.train()

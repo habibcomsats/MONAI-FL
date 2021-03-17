@@ -1,7 +1,11 @@
 # This file will store all the communication related functions from the server end. This will be directly communicating with client
 import sys
+import os
+ProjecttDir = os.getcwd()
+sys.path.insert(1, ProjecttDir)
+
 #path for linux distribution
-sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
+#sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
 
 #path for windows installation
 #sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/')
@@ -14,6 +18,12 @@ import tqdm
 import os
 import time
 import json
+
+import subprocess
+import py_compile
+from subprocess import Popen
+
+import shutil
 
 from serverfilehandler import modelBootstrap
 from communication.network import getNetworkConfigurations
@@ -169,11 +179,23 @@ def receiveWeights(conn):
     return msg
 
 def handle_communication(ep_round, conn, addr):
+    LocalWeights = torch.zeros([])
     if ep_round == 0:
         print ("This is first round")
-        sendModel(conn)
-        print("Initial Global Model Transferred!")
-        LocalWeights = receiveWeights(conn)
+        sendMessage("Do you have global model?", conn)
+        modelExists = receiveMessage(conn)
+        if modelExists == "True":
+            # send weights
+            print("Sending weights!")
+            modelCP = torch.load(FILE)
+            print(modelCP['state_dict'])
+            sendWeights(modelCP['state_dict'], conn)
+            LocalWeights = receiveWeights(conn)
+        else:
+            print("Initial Global Model Transferred!")
+            sendModel(conn)
+            print("Initial Global Model Transferred!")
+            LocalWeights = receiveWeights(conn)
     else:
         print ("This is round: ", str(ep_round+1))
 

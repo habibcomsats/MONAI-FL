@@ -19,7 +19,7 @@ from monai.transforms import Compose, LoadImage, AddChannel, ScaleIntensity, ToT
 from monai.networks.nets import densenet121
 from monai.metrics import compute_roc_auc
 
-/home/habib/myResearch/MONAI-FL/clientmain.py
+#/home/habib/myResearch/MONAI-FL/clientmain.py
 
 np.random.seed(0)
 print_config()

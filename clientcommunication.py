@@ -1,14 +1,16 @@
 # This file will store all the communication related functions from the client end. This will be directly communicating with server
 
 import sys
+import os
+
 #path for linux distribution
-sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
+ProjecttDir = os.getcwd()
+sys.path.insert(1, ProjecttDir) #'/home/habib/myResearch/MONAI-FL')
 #path for windows installation
 #sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/')
 
 import socket
 import torch
-import os
 import tqdm
 import time
 import pickle
@@ -153,7 +155,7 @@ def receiveModel():
             # update the progress bar
             #print(bytes_read)
             progress.update(len(bytes_read))
-    shutil.move('/'+filename, FILE)
+    return filename   
 
 def receiveWeights():
     msg_length = client.recv(HEADER).decode(FORMAT)
@@ -178,13 +180,36 @@ def handle_server():
         print("Local Epoch: "+ str(loc_epoch+1) + "/" + str(glob_epoch))
         if loc_epoch == 0:
             print ("This is first round")
-            receiveModel()
-            print("Initial Global Model Transferred!")
-            #p = Popen(["python","clientmain.py"])
-            #p.wait()
-            modelCP = torch.load(FILE)
-            print(modelCP['state_dict'])
-            sendWeights(modelCP['state_dict'])
+            modelMessage = receiveMessage()
+            print(modelMessage)
+            currentDir = os.getcwd() 
+            modelDir = currentDir + '/checkpoints/client_model/'
+            filename = 'checkpoint.pth.tar'
+            #modelFile = currentDir + '/checkpoints/client_model/' + filename
+            if os.path.isfile(FILE):
+                recvWights = torch.zeros([])
+                print("Initial Global Model Available with Client!")
+                sendMessage("True")
+                ###receive weights and update model CP
+                recvWights = receiveWeights()
+                modelCP = torch.load(FILE)
+                modelCP['state_dict'] = recvWights
+                torch.save(modelCP, FILE)
+                p = Popen(["python","clientmain.py"])
+                p.wait()
+                modelCP = torch.load(FILE)
+                sendWeights(modelCP['state_dict'])
+            else:
+                print("File does not exist")
+                sendMessage("False")
+                filename = receiveModel()
+                shutil.move(currentDir+'/'+filename, modelDir)
+                print("Initial Global Model Transferred!")
+                p = Popen(["python","clientmain.py"])
+                p.wait()
+                modelCP = torch.load(FILE)
+                print(modelCP['state_dict'])
+                sendWeights(modelCP['state_dict'])
 
         else:
             print ("This is round: ", str(loc_epoch+1))       

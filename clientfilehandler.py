@@ -1,8 +1,12 @@
 # This file contains functions to save and load the model checkpoints in the local storage. It also interfaces with client_trainer and client_communicator
 import sys
 import os
+
+ProjecttDir = os.getcwd()
+sys.path.insert(1, ProjecttDir)
+
 #path for linux distribution
-sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
+#sys.path.insert(1, '/home/habib/myResearch/MONAI-FL')
 #path for windows installation
 #sys.path.insert(1, 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/')
 import torch
@@ -13,7 +17,7 @@ from monai.networks.nets import densenet121
 
 savedir = 'client_model'
 checkpointdir = os.path.join('./checkpoints', savedir)
-fullpath = os.path.join(checkpointdir, 'client_checkpoint.pth.tar')
+FILE = os.path.join(checkpointdir, 'checkpoint.pth.tar')
  
 # parse args
 args = args_parser()
@@ -39,7 +43,7 @@ def getModel(argsModel):
 def modelBootstrap():
   #colecting model from server storage and sending it to devices in the list.
   #path for linux distribution
-  FILE = '/home/habib/myResearch/MONAI-FL/save/models/client/testmodel.pth'
+  #FILE = '/home/habib/myResearch/MONAI-FL/save/models/client/testmodel.pth'
   #path for windows installation
 #  FILE = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/save/models/server/testmodel.pth'
   
