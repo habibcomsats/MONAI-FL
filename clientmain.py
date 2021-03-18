@@ -19,8 +19,6 @@ from monai.transforms import Compose, LoadImage, AddChannel, ScaleIntensity, ToT
 from monai.networks.nets import densenet121
 from monai.metrics import compute_roc_auc
 
-#/home/habib/myResearch/MONAI-FL/clientmain.py
-
 np.random.seed(0)
 print_config()
 
@@ -31,7 +29,7 @@ There are 6 folders in the dataset: Hand, AbdomenCT, CXR, ChestCT, BreastMRI, He
 which should be used as the labels to train our classification model."""
 
 #windows version
-data_dir = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/'
+data_dir = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/data/MedNIST'
 
 #Linux version
 #data_dir = '/home/habib/myResearch/data/MedNIST/'
@@ -60,10 +58,10 @@ for i, class_name in enumerate(class_names):
     image_file_list.extend(image_files[i])
     image_label_list.extend([i] * len(image_files[i]))
 num_total = len(image_label_list)
-image_width, image_height = Image.open(image_file_list[0]).size
+#image_width, image_height = Image.open(image_file_list[0]).size
 
 print('Total image count:', num_total)
-print("Image dimensions:", image_width, "x", image_height)
+#print("Image dimensions:", image_width, "x", image_height)
 print("Label names:", class_names)
 print("Label counts:", [len(image_files[i]) for i in range(num_class)])
 
@@ -77,7 +75,7 @@ for i,k in enumerate(np.random.randint(num_total, size=9)):
     plt.xlabel(class_names[image_label_list[k]])
     plt.imshow(arr, cmap='gray', vmin=0, vmax=255)
 plt.tight_layout()
-plt.show()
+#plt.show()
 
 """## Prepare training, validation and test data lists
 Randomly select 10% of the dataset as validation and 10% as test.
@@ -135,13 +133,13 @@ class MedNISTDataset(Dataset):
         return self.transforms(self.image_files[index]), self.labels[index]
 
 train_ds = MedNISTDataset(trainX, trainY, train_transforms)
-train_loader = DataLoader(train_ds, batch_size=128, shuffle=True, num_workers=10)
+train_loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=0)
 
 val_ds = MedNISTDataset(valX, valY, val_transforms)
-val_loader = DataLoader(val_ds, batch_size=128, num_workers=10)
+val_loader = DataLoader(val_ds, batch_size=64, num_workers=0)
 
 test_ds = MedNISTDataset(testX, testY, val_transforms)
-test_loader = DataLoader(test_ds, batch_size=128, num_workers=10)
+test_loader = DataLoader(test_ds, batch_size=64, num_workers=0)
 
 """## Define network and optimizer
 1. Set learning rate for how much the model is updated per batch.
@@ -241,7 +239,7 @@ x = [val_interval * (i + 1) for i in range(len(metric_values))]
 y = metric_values
 plt.xlabel('epoch')
 plt.plot(x, y)
-plt.show()
+#plt.show()
 
 """## Evaluate the model on test dataset
 After training and validation, we already got the best model on validation test.

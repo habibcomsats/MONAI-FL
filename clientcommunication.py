@@ -212,7 +212,19 @@ def handle_server():
                 sendWeights(modelCP['state_dict'])
 
         else:
-            print ("This is round: ", str(loc_epoch+1))       
+            print ("This is round: ", str(loc_epoch+1))  
+            recvWights = torch.zeros([])
+            print("Initial Global Model Available with Client!")
+            #sendMessage("True")
+            ###receive weights and update model CP
+            recvWights = receiveWeights()
+            modelCP = torch.load(FILE)
+            modelCP['state_dict'] = recvWights
+            torch.save(modelCP, FILE)
+            p = Popen(["python","clientmain.py"])
+            p.wait()
+            modelCP = torch.load(FILE)
+            sendWeights(modelCP['state_dict'])     
         loc_epoch+=1
     server_message  = receiveMessage()
     print(server_message)

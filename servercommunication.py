@@ -135,7 +135,7 @@ def sendWeights(msgData, conn):
     message = pickle.dumps(msgData)
     #print(message)
     msg_length = len(message)
-    print(msg_length)
+    #print(msg_length)
     send_length = str(msg_length).encode(FORMAT)
     send_length += b' '*(HEADER-len(send_length))
     conn.send(send_length)
@@ -200,6 +200,11 @@ def handle_communication(ep_round, conn, addr):
             LocalWeights = receiveWeights(conn)
     else:
         print ("This is round: ", str(ep_round+1))
+        print("Sending weights!")
+        modelCP = torch.load(FILE)
+        #print(modelCP['state_dict'])
+        sendWeights(modelCP['state_dict'], conn)
+        LocalWeights = receiveWeights(conn)
 
             # if ep_round == 0:
         #     #modelCP = torch.load(FILE)
