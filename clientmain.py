@@ -29,11 +29,13 @@ There are 6 folders in the dataset: Hand, AbdomenCT, CXR, ChestCT, BreastMRI, He
 which should be used as the labels to train our classification model."""
 
 #windows version
-data_dir = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/data/MedNIST'
+#data_dir = 'C:/Users/mhreh/research/MONAI-FL/MONAI-FL/data/MedNIST'
 
 #Linux version
 #data_dir = '/home/habib/myResearch/data/MedNIST/'
 debug = 1  # 0: normal mode 1: debug mode
+datasetdir = 'MedNIST'
+data_dir = os.path.join('./data', datasetdir)
 
 savedir = 'client_model'
 checkpointdir = os.path.join('./checkpoints', savedir)
