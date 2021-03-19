@@ -244,7 +244,7 @@ def handle_client(conn, addr):
             print("Global Epoch: "+ str(glob_epoch+1) + "/" + str(GlobalEpochs))
             Local_Weights = handle_communication(glob_epoch, conn, addr)
             #print(Local_Weights)
-            #GlobalWeights = GlobalWeights.add(Local_Weights)
+            GlobalWeights = GlobalWeights.add(Local_Weights)
             glob_epoch += 1
         
         #AvgWeights = FedAvg(GlobalWeights)
